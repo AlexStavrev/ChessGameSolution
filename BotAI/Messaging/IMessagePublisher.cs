@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BotAI.Messaging
 {
-    internal interface IMessagePublisher
+    public interface IMessagePublisher
     {
         void PublishMoveEvent(Guid gameId, Guid botId, Move move);
         void PublishJoinGame(Guid botId);
