@@ -10,6 +10,7 @@ public class Bot
     public Guid Id { get; private set; }
     public IGame GameBoard { get; set; }
     public Guid? BoardId { get; set; }
+    public BoardSide Side { get; set; }
     public IBotStrategy Strategy { get; set; }
 
     //private readonly IMessagePublisher _messagePublisher;
@@ -19,6 +20,7 @@ public class Bot
         Id = new Guid();
         GameBoard = GameFactory.Create();
         BoardId = null;
+        Side = BoardSide.Undefined;
         Strategy = new FirstInMindStrategy();
     }
 
@@ -26,10 +28,21 @@ public class Bot
     {
         Id = id;
         GameBoard = gameBoard;
+        Side = side;
         Strategy = strategy;
         //_messagePublisher = messagePublisher;
     }
 
+    public void OnBoardStateUpdateEvent(string boardFenState)
+    {
+        GameBoard = GameFactory.Create(boardFenState);
+
+        BoardSide currentToMove = GameBoard.Pos.SideToMove.IsWhite ? BoardSide.White : BoardSide.Black;
+        if (currentToMove.Equals(Side))
+        {
+            //TODO: Publish MoveEvent with GetNextMove();
+            //_messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove());
+        }
     }
 
     public Move GetNextMove()
