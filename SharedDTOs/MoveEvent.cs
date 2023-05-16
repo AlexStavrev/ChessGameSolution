@@ -1,11 +1,10 @@
 ﻿using Rudzoft.ChessLib.Types;
 
-namespace SharedDTOs
+namespace SharedDTOs;
+
+public class MoveEvent
 {
-    public class MoveEvent
-    {
-        public Guid BoardId { get; set; }
-        public Guid BotId { get; set; }
-        public Move Move { get; set; }
-    }
+    public Guid? BoardId { get; set; }
+    public Guid BotId { get; set; }
+    public Move Move { get; set; }
 }

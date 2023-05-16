@@ -1,4 +1,5 @@
-﻿using BotAI.Strategies;
+﻿using BotAI.Messaging;
+using BotAI.Strategies;
 using Rudzoft.ChessLib;
 using Rudzoft.ChessLib.Factories;
 using Rudzoft.ChessLib.Types;
@@ -13,7 +14,7 @@ public class Bot
     public BoardSide Side { get; set; }
     public IBotStrategy Strategy { get; set; }
 
-    //private readonly IMessagePublisher _messagePublisher;
+    private readonly IMessagePublisher _messagePublisher;
 
     public Bot()
     {
@@ -24,13 +25,13 @@ public class Bot
         Strategy = new FirstInMindStrategy();
     }
 
-    public Bot(Guid id, IGame gameBoard, BoardSide side, IBotStrategy strategy/*, IMessagePublisher messagePublisher*/)
+    public Bot(Guid id, IGame gameBoard, BoardSide side, IBotStrategy strategy, IMessagePublisher messagePublisher)
     {
         Id = id;
         GameBoard = gameBoard;
         Side = side;
         Strategy = strategy;
-        //_messagePublisher = messagePublisher;
+        _messagePublisher = messagePublisher;
     }
 
     public void OnBoardStateUpdateEvent(string boardFenState)
@@ -40,8 +41,7 @@ public class Bot
         BoardSide currentToMove = GameBoard.Pos.SideToMove.IsWhite ? BoardSide.White : BoardSide.Black;
         if (currentToMove.Equals(Side))
         {
-            //TODO: Publish MoveEvent with GetNextMove();
-            //_messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove());
+            _messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove());
         }
     }
 
