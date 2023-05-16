@@ -7,3 +7,4 @@ string cloudAMQPConnectionString = File.ReadAllText(@"..\..\cloudAMQPConnectionS
 var bus = RabbitHutch.CreateBus(cloudAMQPConnectionString);
 
 var _messagePublisher = new MessagePublisher(bus);
+
