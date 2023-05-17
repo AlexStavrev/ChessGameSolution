@@ -44,11 +44,12 @@ public class Bot
     public void OnBoardStateUpdateEvent(string boardFenState)
     {
         GameBoard = GameFactory.Create(boardFenState);
+        Move? nextMove = GetNextMove();
 
         BoardSide currentToMove = GameBoard.Pos.SideToMove.IsWhite ? BoardSide.White : BoardSide.Black;
-        if (currentToMove.Equals(Side))
+        if (nextMove.HasValue && nextMove.Value.IsValidMove() && currentToMove.Equals(Side))
         {
-            _messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove());
+            _messagePublisher.PublishMoveEvent(BoardId, Id, nextMove.Value);
         }
     }
 
@@ -60,7 +61,7 @@ public class Bot
 
         if(Side.Equals(BoardSide.White))
         {
-            _messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove());
+            _messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove()!.Value);
         }
     }
 
@@ -87,7 +88,7 @@ public class Bot
         _messagePublisher.PublishJoinGame(Id);
     }
 
-    public Move GetNextMove()
+    public Move? GetNextMove()
     {
         return Strategy.GetNextMove(GameBoard);
     }

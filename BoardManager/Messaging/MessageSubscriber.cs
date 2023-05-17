@@ -32,7 +32,7 @@ public class MessageSubscriber : IMessageSubsriber
 
     public void HandeMoveEvent(MoveEvent moveEvent)
     {
-        throw new NotImplementedException();
+        _board.OnPlayerMoveEvent(moveEvent.BotId, moveEvent.Move);
     }
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
