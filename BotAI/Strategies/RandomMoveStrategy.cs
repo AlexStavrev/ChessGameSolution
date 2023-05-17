@@ -7,7 +7,7 @@ internal class RandomMoveStrategy : IBotStrategy
 {
     private static readonly Random _random = new();
 
-    public Move GetNextMove(IGame gameBoard)
+    public Move? GetNextMove(IGame gameBoard)
     {
         var moves = gameBoard.Pos.GenerateMoves();
 
