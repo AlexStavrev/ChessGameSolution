@@ -37,6 +37,6 @@ public class MessageSubscriber : IMessageSubsriber
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
-        _board.StartGame();
+        _board.StartGame(gameStartEvent.Bots);
     }
 }

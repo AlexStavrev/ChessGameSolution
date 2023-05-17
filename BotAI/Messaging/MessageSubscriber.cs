@@ -65,8 +65,14 @@ public class MessageSubscriber : IMessageSubscriber
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
-        _bot.OnGameStartEvent(gameStartEvent.Bot);
+        var bot = gameStartEvent.Bots.Where(bot => bot.Id.Equals(_bot.Id)).First();
+        if (bot != null)
+        {
+            throw new ArgumentException($"Unable to find bot with id {bot.Id}");
+        }
+
+        _bot.OnGameStartEvent(bot);
         _isInGame = true;
-        StartBoardListener(gameStartEvent.Bot.BoardId);
+        StartBoardListener(bot.BoardId);
     }
 }

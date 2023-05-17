@@ -35,8 +35,9 @@ public class ChessBoard
         _messagePublisher.PublishRegisterBoard(Id);
     }
 
-    public void StartGame()
+    public void StartGame(ICollection<BotDTO> bots)
     {
+        Bots = bots;
         GameBoard.NewGame();
         UpdateBoardState();
     }
