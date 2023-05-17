@@ -1,6 +1,6 @@
 ﻿using Rudzoft.ChessLib.Types;
 
-namespace SharedDTOs;
+namespace SharedDTOs.Events;
 
 public class MoveEvent
 {
