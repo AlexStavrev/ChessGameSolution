@@ -16,13 +16,14 @@ public class Bot
 
     private readonly IMessagePublisher _messagePublisher;
 
-    public Bot()
+    public Bot(IMessagePublisher messagePublisher)
     {
         Id = new Guid();
         GameBoard = GameFactory.Create();
         BoardId = null;
         Side = BoardSide.Undefined;
         Strategy = new FirstInMindStrategy();
+        _messagePublisher = messagePublisher;
     }
 
     public Bot(Guid id, IGame gameBoard, BoardSide side, IBotStrategy strategy, IMessagePublisher messagePublisher)
