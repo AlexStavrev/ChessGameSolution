@@ -85,7 +85,14 @@ public class Bot
 
     public void JoinGame()
     {
-        _messagePublisher.PublishJoinGame(Id);
+        var botDto = new BotDTO()
+        {
+            Id = this.Id,
+            GameBoard = this.GameBoard,
+            BoardId = this.BoardId,
+            Side = this.Side
+        };
+        _messagePublisher.PublishJoinGame(botDto);
     }
 
     public Move? GetNextMove()

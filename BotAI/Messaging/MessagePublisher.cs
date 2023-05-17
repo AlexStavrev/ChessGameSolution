@@ -1,5 +1,6 @@
 ﻿using EasyNetQ;
 using Rudzoft.ChessLib.Types;
+using SharedDTOs.DTOs;
 using SharedDTOs.Events;
 
 namespace BotAI.Messaging;
@@ -19,11 +20,11 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         _bus.Dispose();
     }
 
-    public void PublishJoinGame(Guid botId)
+    public void PublishJoinGame(BotDTO bot)
     {
         var message = new JoinGameEvent
         {
-            BotId = botId,
+            Bot = bot,
         };
         _bus.PubSub.Publish(message);
     }

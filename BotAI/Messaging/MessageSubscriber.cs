@@ -71,8 +71,8 @@ public class MessageSubscriber : IMessageSubscriber
             throw new ArgumentException($"Unable to find bot with id {bot.Id}");
         }
 
-        _bot.OnGameStartEvent(bot);
+        _bot.OnGameStartEvent(bot!);
         _isInGame = true;
-        StartBoardListener(bot.BoardId);
+        StartBoardListener(bot!.BoardId!.Value);
     }
 }
