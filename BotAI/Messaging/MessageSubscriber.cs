@@ -1,22 +1,24 @@
-﻿using EasyNetQ;
+﻿using BotAI.Models;
+using EasyNetQ;
 using SharedDTOs.Events;
 
 namespace BotAI.Messaging;
 
-internal class MessageSubscriber : IMessageSubscriber
+public class MessageSubscriber : IMessageSubscriber
 {
-    private string _connectionString;
+    private readonly string _connectionString;
     private bool _isInGame = false;
+    private readonly Bot _bot;
 
-    public MessageSubscriber(string connectionString)
+    public MessageSubscriber(string connectionString, Bot bot)
     {
         _connectionString = connectionString;
-
+        _bot = bot;
     }
 
     public void Start()
     {
-        var botId = Program.Bot.Id;
+        var botId = _bot.Id;
 
         using var bus = RabbitHutch.CreateBus(_connectionString);
 
@@ -51,18 +53,20 @@ internal class MessageSubscriber : IMessageSubscriber
 
     public void HandeBoardStateUpdate(BoardStateUdpateEvent boardStateUpadate)
     {
-        Program.Bot.OnBoardStateUpdateEvent(boardStateUpadate.BoardFenState);
+        _bot.OnBoardStateUpdateEvent(boardStateUpadate.BoardFenState);
     }
 
     public void HandleGameEndEvent(GameEndEvent gameEndEvent)
     {
-        Start();
+        _bot.OnGameEndEvent(gameEndEvent.WinnerId);
         _isInGame = false;
+        Start();
     }
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
-        StartBoardListener(gameStartEvent.Bot.BoardId);
+        _bot.OnGameStartEvent(gameStartEvent.Bot);
         _isInGame = true;
+        StartBoardListener(gameStartEvent.Bot.BoardId);
     }
 }
