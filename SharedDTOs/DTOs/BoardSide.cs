@@ -1,4 +1,4 @@
-﻿namespace BotAI.Models;
+﻿namespace SharedDTOs.DTOs;
 public enum BoardSide
 {
     Undefined,

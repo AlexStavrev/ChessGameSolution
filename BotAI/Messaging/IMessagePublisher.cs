@@ -1,9 +1,10 @@
 ﻿using Rudzoft.ChessLib.Types;
+using SharedDTOs.DTOs;
 
 namespace BotAI.Messaging;
 
 public interface IMessagePublisher
 {
     void PublishMoveEvent(Guid? gameId, Guid botId, Move move);
-    void PublishJoinGame(Guid botId);
+    void PublishJoinGame(BotDTO botId);
 }

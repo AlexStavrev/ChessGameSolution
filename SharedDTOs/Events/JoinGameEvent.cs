@@ -1,6 +1,8 @@
-﻿namespace SharedDTOs.Events;
+﻿using SharedDTOs.DTOs;
+
+namespace SharedDTOs.Events;
 
 public class JoinGameEvent
 {
-    public Guid BotId { get; set; }
+    public BotDTO Bot { get; set; }
 }

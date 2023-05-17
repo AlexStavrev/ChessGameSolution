@@ -1,14 +1,17 @@
 ﻿using EasyNetQ;
+using GameManager.Models;
 using SharedDTOs.Events;
 
 namespace GameManager.Messaging;
 public class MessageSubscriber : IMessageSubscriber
 {
     private readonly string _connectionString;
+    private readonly GamesManager _gamesManager;
 
-    public MessageSubscriber(string connectionString)
+    public MessageSubscriber(string connectionString, GamesManager gamesManager)
     {
         _connectionString = connectionString;
+        _gamesManager = gamesManager;
     }
 
     public void Start()
@@ -27,11 +30,11 @@ public class MessageSubscriber : IMessageSubscriber
 
     public void HandePlayerJoinEvent(JoinGameEvent joinGameEvent)
     {
-        throw new NotImplementedException();
+        _gamesManager.OnPlayerJoinEvent(joinGameEvent.Bot);
     }
 
     public void HandleBoardRegisterEvent(RegisterBoardEvent registerBoardEvent)
     {
-        throw new NotImplementedException();
+        _gamesManager.OnBoardRegisterEvent(registerBoardEvent.BoardId);
     }
 }

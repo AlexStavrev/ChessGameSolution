@@ -1,11 +1,6 @@
 ﻿using EasyNetQ;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GameManager.Messaging
 {
