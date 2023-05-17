@@ -54,7 +54,7 @@ public class Bot
     {
         GameBoard = botDto.GameBoard;
         BoardId = botDto.BoardId;
-        Side = (BoardSide)botDto.Side;
+        Side = (BoardSide)((int)botDto.Side);
 
         if(Side.Equals(BoardSide.White))
         {
@@ -76,6 +76,13 @@ public class Bot
         GameBoard = GameFactory.Create();
         BoardId = null;
         Side = BoardSide.Undefined;
+
+        JoinGame();
+    }
+
+    public void JoinGame()
+    {
+        _messagePublisher.PublishJoinGame(Id);
     }
 
     public Move GetNextMove()
