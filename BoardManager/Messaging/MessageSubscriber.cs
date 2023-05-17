@@ -37,6 +37,6 @@ public class MessageSubscriber : IMessageSubsriber
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
-        throw new NotImplementedException();
+        _board.StartGame();
     }
 }
