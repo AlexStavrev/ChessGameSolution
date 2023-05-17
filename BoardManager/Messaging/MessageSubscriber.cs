@@ -8,10 +8,10 @@ public class MessageSubscriber : IMessageSubsriber
     private readonly string _connectionString;
     private readonly ChessBoard _board;
 
-    public MessageSubscriber(string connectionString, ChessBoard _board)
+    public MessageSubscriber(string connectionString, ChessBoard board)
     {
         _connectionString = connectionString;
-        _board = _board;
+        _board = board;
     }
 
     public void Start()
