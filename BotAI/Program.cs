@@ -1,9 +1,22 @@
 ﻿using BotAI.Messaging;
+using BotAI.Models;
 using EasyNetQ;
+using System.Runtime.CompilerServices;
 using System.Text;
 
-string cloudAMQPConnectionString = File.ReadAllText(@"..\..\cloudAMQPConnectionString.txt", Encoding.UTF8);
+internal class Program
+{
+    public static Bot Bot { get; private set; }
 
-var bus = RabbitHutch.CreateBus(cloudAMQPConnectionString);
+    private static void Main(string[] args)
+    {
+        string cloudAMQPConnectionString = File.ReadAllText(@"..\..\cloudAMQPConnectionString.txt", Encoding.UTF8);
 
-var _messagePublisher = new MessagePublisher(bus);
+        var bus = RabbitHutch.CreateBus(cloudAMQPConnectionString);
+
+        var messagePublisher = new MessagePublisher(bus);
+
+        Bot = new Bot(messagePublisher);
+    }
+    
+}

@@ -1,6 +1,6 @@
 ﻿using EasyNetQ;
 using Rudzoft.ChessLib.Types;
-using SharedDTOs;
+using SharedDTOs.Events;
 
 namespace BotAI.Messaging;
 
