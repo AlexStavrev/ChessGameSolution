@@ -37,6 +37,8 @@ public class Bot
         Side = side;
         Strategy = strategy;
         _messagePublisher = messagePublisher;
+
+        GameBoard.NewGame();
     }
 
     public void OnBoardStateUpdateEvent(string boardFenState)
@@ -73,7 +75,7 @@ public class Bot
             Losses++;
         }
 
-        GameBoard = GameFactory.Create();
+        GameBoard.NewGame();
         BoardId = null;
         Side = BoardSide.Undefined;
 

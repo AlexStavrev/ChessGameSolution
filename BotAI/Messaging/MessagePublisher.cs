@@ -37,6 +37,6 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             Move = move,
             
         };
-        _bus.PubSub.Publish(message);
+        _bus.PubSub.Publish(message, boardId.ToString());
     }
 }
