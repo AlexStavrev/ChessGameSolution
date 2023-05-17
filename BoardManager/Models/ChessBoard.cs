@@ -39,4 +39,9 @@ public class ChessBoard
         GameBoard.NewGame();
         _messagePublisher.PublishBoardStateUpdate(GameBoard.GetFen().ToString(), Id);
     }
+
+    public void EndGame(Guid winnerId)
+    {
+        _messagePublisher.PublishEndGameEvent(Id, winnerId);
+    }
 }
