@@ -6,44 +6,63 @@ namespace BotAI.Messaging;
 internal class MessageSubscriber : IMessageSubscriber
 {
     private string _connectionString;
-    private IBus _bus;
+    private bool _isInGame = false;
 
     public MessageSubscriber(string connectionString)
     {
         _connectionString = connectionString;
+
     }
 
     public void Start()
     {
-        using (_bus = RabbitHutch.CreateBus(_connectionString))
+        var botId = Program.Bot.Id;
+
+        using var bus = RabbitHutch.CreateBus(_connectionString);
+
+        bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{botId}"));
+
+        // Block the thread so that it will not exit and stop subscribing.
+        lock (this)
         {
-            _bus.PubSub.Subscribe<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate);
-
-            _bus.PubSub.Subscribe<GameEndEvent>("gameEnded", HandleGameEndEvent);
-
-            _bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent);
-
-            // Block the thread so that it will not exit and stop subscribing.
-            lock (this)
+            while (!_isInGame)
             {
                 Monitor.Wait(this);
             }
         }
-
     }
 
-    public void HandeBoardStateUpdate(BoardStateUdpateEvent boardStaterUpadate)
+    public void StartBoardListener(Guid boardId)
     {
-        throw new NotImplementedException();
+        using var bus = RabbitHutch.CreateBus(_connectionString);
+
+        bus.PubSub.Subscribe<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, x => x.WithTopic($"{boardId}"));
+
+        bus.PubSub.Subscribe<GameEndEvent>("gameEnded", HandleGameEndEvent, x => x.WithTopic($"{boardId}"));
+
+        lock (this)
+        {
+            while (_isInGame)
+            {
+                Monitor.Wait(this);
+            }
+        }
+    }
+
+    public void HandeBoardStateUpdate(BoardStateUdpateEvent boardStateUpadate)
+    {
+        Program.Bot.OnBoardStateUpdateEvent(boardStateUpadate.BoardFenState);
     }
 
     public void HandleGameEndEvent(GameEndEvent gameEndEvent)
     {
-        throw new NotImplementedException();
+        Start();
+        _isInGame = false;
     }
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
-        throw new NotImplementedException();
+        StartBoardListener(gameStartEvent.Bot.BoardId);
+        _isInGame = true;
     }
 }
