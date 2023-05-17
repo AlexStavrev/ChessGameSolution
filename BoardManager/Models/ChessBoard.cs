@@ -33,4 +33,10 @@ public class ChessBoard
     {
         _messagePublisher.PublishRegisterBoard(Id);
     }
+
+    public void StartGame()
+    {
+        GameBoard.NewGame();
+        _messagePublisher.PublishBoardStateUpdate(GameBoard.GetFen().ToString(), Id);
+    }
 }
