@@ -18,13 +18,13 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         _bus.Dispose();
     }
 
-    public void PublishBoardStateUpdate(string boardFenState)
+    public void PublishBoardStateUpdate(string boardFenState, Guid boardId)
     {
         var message = new BoardStateUdpateEvent
         {
             BoardFenState = boardFenState,
         };
-        _bus.PubSub.Publish(message);
+        _bus.PubSub.Publish(message, boardId.ToString());
     }
 
     public void PublishEndGameEvent(Guid boardId, Guid winnerId)
@@ -34,7 +34,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             BoardId = boardId,
             WinnerId = winnerId
         };
-        _bus.PubSub.Publish(message);
+        _bus.PubSub.Publish(message, boardId.ToString());
     }
 
     public void PublishRegisterBoard(Guid boardId)
