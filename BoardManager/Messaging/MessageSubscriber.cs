@@ -1,6 +1,7 @@
 ﻿using BoardManager.Models;
 using EasyNetQ;
 using SharedDTOs.Events;
+using System.Linq;
 
 namespace BoardManager.Messaging;
 public class MessageSubscriber : IMessageSubsriber
@@ -32,11 +33,19 @@ public class MessageSubscriber : IMessageSubsriber
 
     public void HandeMoveEvent(MoveEvent moveEvent)
     {
-        _board.OnPlayerMoveEvent(moveEvent.BotId, moveEvent.Move);
+        Console.WriteLine($"{_board} Movement received {moveEvent.BotId}; {moveEvent.Move}");
+        if(!moveEvent.Move.HasValue)
+        {
+            var faultyBot = _board.Bots.Where(guid => guid.Equals(moveEvent.BotId));
+            Guid winnderGuid = _board.Bots.Except(faultyBot).First().Id;
+            _board.EndGame(winnderGuid);
+        }
+        _board.OnPlayerMoveEvent(moveEvent.BotId, moveEvent.Move.Value);
     }
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
+        Console.WriteLine($"{_board} Game Started...");
         _board.StartGame(gameStartEvent.Bots);
     }
 }

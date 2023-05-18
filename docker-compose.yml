@@ -6,17 +6,53 @@ services:
     build:
       context: .
       dockerfile: BoardManager/Dockerfile
+    deploy:
+      replicas: 1
+    volumes:
+      - ./cloudAMQPConnectionString.txt:/app/cloudAMQPConnectionString.txt
+    depends_on:
+      - gamemanager
 
   botai:
     image: ${DOCKER_REGISTRY-}botai
     build:
       context: .
       dockerfile: BotAI/Dockerfile
+    deploy:
+      replicas: 2
+    volumes:
+      - ./cloudAMQPConnectionString.txt:/app/cloudAMQPConnectionString.txt
+    depends_on:
+      - gamemanager
 
+  #botai2:
+  #  image: ${DOCKER_REGISTRY-}botai
+  #  build:
+  #    context: .
+  #    dockerfile: BotAI/Dockerfile
+  #  deploy:
+  #    replicas: 1
+  #  volumes:
+  #    - ./cloudAMQPConnectionString.txt:/app/cloudAMQPConnectionString.txt
+  #  depends_on:
+  #    - gamemanager
+
+  #botai3:
+  #  image: ${DOCKER_REGISTRY-}botai
+  #  build:
+  #    context: .
+  #    dockerfile: BotAI/Dockerfile
+  #  deploy:
+  #    replicas: 1
+  #  volumes:
+  #    - ./cloudAMQPConnectionString.txt:/app/cloudAMQPConnectionString.txt
+  #  depends_on:
+  #    - gamemanager
 
   gamemanager:
     image: ${DOCKER_REGISTRY-}gamemanager
     build:
       context: .
       dockerfile: GameManager/Dockerfile
-
+    volumes:
+      - ./cloudAMQPConnectionString.txt:/app/cloudAMQPConnectionString.txt

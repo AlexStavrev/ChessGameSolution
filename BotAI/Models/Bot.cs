@@ -16,16 +16,17 @@ public class Bot
     public IBotStrategy Strategy { get; set; }
     public int Wins { get; private set; }
     public int Losses { get; private set; }
+    public int Draws { get; set; }
 
 
     private readonly IMessagePublisher _messagePublisher;
 
     public Bot(IMessagePublisher messagePublisher) : this(
-        new Guid(),
+        Guid.NewGuid(),
         GameFactory.Create(),
         null,
         BoardSide.Undefined,
-        new FirstInMindStrategy(),
+        new RandomMoveStrategy(),
         messagePublisher
     ) { }
 
@@ -55,7 +56,7 @@ public class Bot
 
     public void OnGameStartEvent(BotDTO botDto)
     {
-        GameBoard = botDto.GameBoard;
+        GameBoard = GameFactory.Create(botDto.GameBoardFen);
         BoardId = botDto.BoardId;
         Side = (BoardSide)((int)botDto.Side);
 
@@ -70,10 +71,17 @@ public class Bot
         if (Id.Equals(winnerGuid))
         {
             Wins++;
+            Console.WriteLine("Game ended, WIN");
+        }
+        else if (winnerGuid.Equals(new Guid()))
+        {
+            Draws++;
+            Console.WriteLine("Game ended, DRAW");
         }
         else
         {
             Losses++;
+            Console.WriteLine("Game ended, LOSS");
         }
 
         GameBoard.NewGame();
@@ -85,10 +93,11 @@ public class Bot
 
     public void JoinGame()
     {
+        Console.WriteLine($"{Id}: Joining game. W:{Wins} L:{Losses} D:{Draws}; Strategy: {Strategy}");
         var botDto = new BotDTO()
         {
             Id = this.Id,
-            GameBoard = this.GameBoard,
+            GameBoardFen = this.GameBoard.GetFen().ToString(),
             BoardId = this.BoardId,
             Side = this.Side
         };

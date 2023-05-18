@@ -3,6 +3,7 @@ using Rudzoft.ChessLib;
 using Rudzoft.ChessLib.Factories;
 using Rudzoft.ChessLib.Types;
 using SharedDTOs.DTOs;
+using Rudzoft.ChessLib.Enums;
 
 namespace BoardManager.Models;
 
@@ -15,7 +16,7 @@ public class ChessBoard
     private readonly IMessagePublisher _messagePublisher;
 
     public ChessBoard(IMessagePublisher messagePublisher) : this(
-        new Guid(),
+        Guid.NewGuid(),
         GameFactory.Create(),
         new List<BotDTO>(),
         messagePublisher
@@ -44,12 +45,20 @@ public class ChessBoard
 
     public void EndGame(Guid winnerId)
     {
+        Thread.Sleep(2000);
         _messagePublisher.PublishEndGameEvent(Id, winnerId);
+
+        RegisterBoard();
     }
 
     public void UpdateBoardState()
     {
         _messagePublisher.PublishBoardStateUpdate(GameBoard.GetFen().ToString(), Id);
+    }
+
+    public void UpdateGUIBoardState()
+    {
+        _messagePublisher.PublishGUIBoardStateUpdate(GameBoard.GetFen().ToString(), Id);
     }
 
     public void OnPlayerMoveEvent(Guid botId, Move move)
@@ -70,10 +79,21 @@ public class ChessBoard
         var position = GameBoard.Pos;
         position.MakeMove(move, position.State);
 
-        UpdateBoardState();
+        UpdateGUIBoardState();
+        GameBoard.UpdateDrawTypes();
         if (position.IsMate)
         {
             EndGame(winnerId: botId);
+        }
+        else if( GameBoard.GameEndType   == GameEndTypes.MaterialDrawn
+           || GameBoard.GameEndType == GameEndTypes.FiftyMove
+           || GameBoard.GameEndType == GameEndTypes.Repetition)
+        {
+            EndGame(winnerId: new Guid());
+        }
+        else
+        {
+            UpdateBoardState();
         }
     }
 }

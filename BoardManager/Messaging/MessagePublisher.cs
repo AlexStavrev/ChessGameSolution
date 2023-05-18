@@ -1,4 +1,5 @@
-﻿using EasyNetQ;
+﻿using BoardManager.Models;
+using EasyNetQ;
 using SharedDTOs.Events;
 
 namespace BoardManager.Messaging;
@@ -25,10 +26,22 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             BoardFenState = boardFenState,
         };
         _bus.PubSub.Publish(message, boardId.ToString());
+        
+    }
+
+    public void PublishGUIBoardStateUpdate(string boardFenState, Guid boardId)
+    {
+        var message = new BoardStateUdpateEvent
+        {
+            BoardFenState = boardFenState,
+        };
+        _bus.PubSub.Publish(message, "GUI-Update");
     }
 
     public void PublishEndGameEvent(Guid boardId, Guid winnerId)
     {
+        var winner = winnerId.Equals(new Guid()) ? "Draw" : winnerId.ToString();
+        Console.WriteLine($"Game ended; Winner: {winner}");
         var message = new GameEndEvent
         {
             BoardId = boardId,

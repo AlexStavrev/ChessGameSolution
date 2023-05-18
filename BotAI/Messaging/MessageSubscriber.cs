@@ -10,6 +10,8 @@ public class MessageSubscriber : IMessageSubscriber
     private bool _isInGame = false;
     private readonly Bot _bot;
 
+    private bool _isListeningToBoard = false;
+
     public MessageSubscriber(string connectionString, Bot bot)
     {
         _connectionString = connectionString;
@@ -18,6 +20,7 @@ public class MessageSubscriber : IMessageSubscriber
 
     public void Start()
     {
+        Console.WriteLine("Waiting for a game...");
         var botId = _bot.Id;
 
         using var bus = RabbitHutch.CreateBus(_connectionString);
@@ -42,6 +45,9 @@ public class MessageSubscriber : IMessageSubscriber
 
         bus.PubSub.Subscribe<GameEndEvent>("gameEnded", HandleGameEndEvent, x => x.WithTopic($"{boardId}"));
 
+        Console.WriteLine($"{_bot.Id}: Listning to board {boardId}");
+        _isListeningToBoard = true;
+
         lock (this)
         {
             while (_isInGame)
@@ -49,15 +55,19 @@ public class MessageSubscriber : IMessageSubscriber
                 Monitor.Wait(this);
             }
         }
+
+        _isListeningToBoard = false;
     }
 
     public void HandeBoardStateUpdate(BoardStateUdpateEvent boardStateUpadate)
     {
+        Console.WriteLine("Board updated");
         _bot.OnBoardStateUpdateEvent(boardStateUpadate.BoardFenState);
     }
 
     public void HandleGameEndEvent(GameEndEvent gameEndEvent)
     {
+        Console.WriteLine("Game end event received");
         _bot.OnGameEndEvent(gameEndEvent.WinnerId);
         _isInGame = false;
         Start();
@@ -65,14 +75,26 @@ public class MessageSubscriber : IMessageSubscriber
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
+        Console.WriteLine("Game started");
         var bot = gameStartEvent.Bots.Where(bot => bot.Id.Equals(_bot.Id)).First();
-        if (bot != null)
+        if (bot == null)
         {
             throw new ArgumentException($"Unable to find bot with id {bot.Id}");
         }
+        bot!.BoardId = gameStartEvent.BoardId;
+
+        _isInGame = true;
+
+        Task.Factory.StartNew(() =>
+            StartBoardListener(bot!.BoardId!.Value)    
+        );
+
+        while(!_isListeningToBoard)
+        {
+            Thread.Sleep(1000);
+        }
+        Thread.Sleep(5000);
 
         _bot.OnGameStartEvent(bot!);
-        _isInGame = true;
-        StartBoardListener(bot!.BoardId!.Value);
     }
 }
