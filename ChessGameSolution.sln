@@ -14,7 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		cloudAMQPConnectionString.txt = cloudAMQPConnectionString.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedDTOs", "SharedDTOs\SharedDTOs.csproj", "{2231D26A-A678-4A39-93D7-8C2DF85AA26E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedDTOs", "SharedDTOs\SharedDTOs.csproj", "{2231D26A-A678-4A39-93D7-8C2DF85AA26E}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{9A6BDD8A-8583-4D38-AACE-93AB51AB1465}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +40,10 @@ Global
 		{2231D26A-A678-4A39-93D7-8C2DF85AA26E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2231D26A-A678-4A39-93D7-8C2DF85AA26E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2231D26A-A678-4A39-93D7-8C2DF85AA26E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A6BDD8A-8583-4D38-AACE-93AB51AB1465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A6BDD8A-8583-4D38-AACE-93AB51AB1465}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A6BDD8A-8583-4D38-AACE-93AB51AB1465}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A6BDD8A-8583-4D38-AACE-93AB51AB1465}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

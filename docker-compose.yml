@@ -1,0 +1,22 @@
+version: '3.4'
+
+services:
+  boardmanager:
+    image: ${DOCKER_REGISTRY-}boardmanager
+    build:
+      context: .
+      dockerfile: BoardManager/Dockerfile
+
+  botai:
+    image: ${DOCKER_REGISTRY-}botai
+    build:
+      context: .
+      dockerfile: BotAI/Dockerfile
+
+
+  gamemanager:
+    image: ${DOCKER_REGISTRY-}gamemanager
+    build:
+      context: .
+      dockerfile: GameManager/Dockerfile
+
