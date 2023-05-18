@@ -58,7 +58,7 @@ public class ChessBoard
 
     public void UpdateGUIBoardState()
     {
-        _messagePublisher.PublishGUIBoardStateUpdate(GameBoard.GetFen().ToString(), Id);
+        _messagePublisher.PublishGUIBoardStateUpdate(GameBoard.GetFen().ToString());
     }
 
     public void OnPlayerMoveEvent(Guid botId, Move move)

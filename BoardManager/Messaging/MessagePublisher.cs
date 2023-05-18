@@ -1,16 +1,20 @@
-﻿using BoardManager.Models;
+﻿using BoardManager.ApiClient;
+using BoardManager.Models;
 using EasyNetQ;
 using SharedDTOs.Events;
+using System.Reflection;
 
 namespace BoardManager.Messaging;
 
 internal class MessagePublisher : IMessagePublisher, IDisposable
 {
     private readonly IBus _bus;
+    private readonly IApiClient _apiClient;
 
-    public MessagePublisher(IBus bus)
+    public MessagePublisher(IBus bus, IApiClient apiClient)
     {
         _bus = bus;
+        _apiClient = apiClient;
     }
 
     void IDisposable.Dispose()
@@ -29,13 +33,14 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         
     }
 
-    public void PublishGUIBoardStateUpdate(string boardFenState, Guid boardId)
+    public async Task PublishGUIBoardStateUpdate(string boardFenState)
     {
-        var message = new BoardStateUdpateEvent
+        var request = await _apiClient.PostBoardUpdate(boardFenState);
+        if (request.IsSuccessful) 
         {
-            BoardFenState = boardFenState,
-        };
-        _bus.PubSub.Publish(message, "GUI-Update");
+            Console.WriteLine($"Sent board update to GUI: {request.StatusCode}");
+        }
+        Console.WriteLine($"Sending board update to GUI failed: {request.StatusCode}");
     }
 
     public void PublishEndGameEvent(Guid boardId, Guid winnerId)
