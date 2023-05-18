@@ -36,11 +36,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
     public async Task PublishGUIBoardStateUpdate(string boardFenState)
     {
         var request = await _apiClient.PostBoardUpdate(boardFenState);
-        if (request.IsSuccessful) 
-        {
-            Console.WriteLine($"Sent board update to GUI: {request.StatusCode}");
-        }
-        Console.WriteLine($"Sending board update to GUI failed: {request.StatusCode}");
+        Console.WriteLine($"Request result: {request.StatusCode}");
     }
 
     public void PublishEndGameEvent(Guid boardId, Guid winnerId)

@@ -14,7 +14,6 @@ public class ApiClient : IApiClient
         request.AddHeader("Accept", "application/json");
         request.AddJsonBody(new { input });
         var response = await client.ExecutePostAsync(request);
-        Console.WriteLine($"Response: {response.ErrorMessage}");
         return response;
 
     }
