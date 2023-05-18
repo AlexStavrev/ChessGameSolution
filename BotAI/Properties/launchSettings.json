@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "BotAI": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
