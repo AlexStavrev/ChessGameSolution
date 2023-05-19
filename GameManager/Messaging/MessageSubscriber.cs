@@ -1,5 +1,6 @@
 ﻿using EasyNetQ;
 using GameManager.Models;
+using SharedDTOs.Monitoring;
 using SharedDTOs.Events;
 
 namespace GameManager.Messaging;
@@ -18,8 +19,8 @@ public class MessageSubscriber : IMessageSubscriber
     {
         using var bus = RabbitHutch.CreateBus(_connectionString);
 
-        bus.PubSub.Subscribe<JoinGameEvent>("joinGameEvent", HandePlayerJoinEvent);
-        bus.PubSub.Subscribe<RegisterBoardEvent>("registerBoardEvent", HandleBoardRegisterEvent);
+        bus.PubSub.SubscribeWithTracingAsync<JoinGameEvent>("joinGameEvent", HandePlayerJoinEvent);
+        bus.PubSub.SubscribeWithTracingAsync<RegisterBoardEvent>("registerBoardEvent", HandleBoardRegisterEvent);
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)

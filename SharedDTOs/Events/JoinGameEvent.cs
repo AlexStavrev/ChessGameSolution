@@ -1,8 +1,9 @@
-﻿using SharedDTOs.DTOs;
+﻿using SharedDTOs.Monitoring;
+using SharedDTOs.DTOs;
 
 namespace SharedDTOs.Events;
 
-public class JoinGameEvent
+public class JoinGameEvent : TracingEventBase
 {
     public BotDTO Bot { get; set; }
 }

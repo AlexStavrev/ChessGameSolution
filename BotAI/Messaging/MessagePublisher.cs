@@ -1,5 +1,6 @@
 ﻿using EasyNetQ;
 using Rudzoft.ChessLib.Types;
+using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
 
@@ -42,7 +43,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             Move = move,
             
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
+        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
         Console.WriteLine("Move published");
     }
 }
