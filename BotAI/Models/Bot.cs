@@ -18,7 +18,7 @@ public class Bot
     public int Losses { get; private set; }
     public int Draws { get; set; }
 
-
+    private readonly Random _random = new Random();
     private readonly IMessagePublisher _messagePublisher;
 
     public Bot(IMessagePublisher messagePublisher) : this(
@@ -28,7 +28,8 @@ public class Bot
         BoardSide.Undefined,
         new RandomMoveStrategy(),
         messagePublisher
-    ) { }
+    )
+    { }
 
     public Bot(Guid id, IGame gameBoard, Guid? boardId, BoardSide side, IBotStrategy strategy, IMessagePublisher messagePublisher)
     {
@@ -47,6 +48,8 @@ public class Bot
         GameBoard = GameFactory.Create(boardFenState);
         Move? nextMove = GetNextMove();
 
+        Thread.Sleep(_random.Next(100, 200));
+
         BoardSide currentToMove = GameBoard.Pos.SideToMove.IsWhite ? BoardSide.White : BoardSide.Black;
         if (nextMove.HasValue && nextMove.Value.IsValidMove() && currentToMove.Equals(Side))
         {
@@ -60,7 +63,9 @@ public class Bot
         BoardId = botDto.BoardId;
         Side = (BoardSide)((int)botDto.Side);
 
-        if(Side.Equals(BoardSide.White))
+        Thread.Sleep(_random.Next(1000, 2000));
+
+        if (Side.Equals(BoardSide.White))
         {
             _messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove()!.Value);
         }
@@ -84,6 +89,8 @@ public class Bot
             Console.WriteLine("Game ended, LOSS");
         }
 
+        Id = Guid.NewGuid();
+        Strategy = StrategyFactory.GetRandomStrategy();
         GameBoard.NewGame();
         BoardId = null;
         Side = BoardSide.Undefined;
@@ -93,6 +100,7 @@ public class Bot
 
     public void JoinGame()
     {
+        Thread.Sleep(_random.Next(1000, 3000));
         Console.WriteLine($"{Id}: Joining game. W:{Wins} L:{Losses} D:{Draws}; Strategy: {Strategy}");
         var botDto = new BotDTO()
         {
