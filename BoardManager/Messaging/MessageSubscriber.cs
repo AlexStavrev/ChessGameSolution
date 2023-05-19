@@ -23,6 +23,7 @@ public class MessageSubscriber : IMessageSubsriber
 
         bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{boardId}"));
         bus.PubSub.Subscribe<MoveEvent>("moveEvent", HandeMoveEvent, x => x.WithTopic($"{boardId}"));
+        bus.PubSub.Subscribe<RequestBoardUpdateEvent>("requestBoardUpdateEvent", HandleRequestBoardStateUpdate, x => x.WithTopic($"{boardId}"));
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
@@ -47,5 +48,17 @@ public class MessageSubscriber : IMessageSubsriber
     {
         Console.WriteLine($"{_board} Game Started...");
         _board.StartGame(gameStartEvent.Bots);
+    }
+
+    public void HandleRequestBoardStateUpdate(RequestBoardUpdateEvent requestBoardUpdateEvent)
+    {
+        if(_board.Bots.Select(bot => bot.Id.Equals(requestBoardUpdateEvent.RequesteeId)).Any())
+        {
+            _board.UpdateBoardState();
+        }
+        else
+        {
+            Console.WriteLine("Requestee is not one of the players!");
+        }
     }
 }

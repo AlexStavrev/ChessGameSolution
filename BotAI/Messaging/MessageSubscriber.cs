@@ -86,15 +86,21 @@ public class MessageSubscriber : IMessageSubscriber
         _isInGame = true;
 
         Task.Factory.StartNew(() =>
-            StartBoardListener(bot!.BoardId!.Value)    
+            StartBoardListener(bot!.BoardId!.Value)
         );
 
-        while(!_isListeningToBoard)
+        while (!_isListeningToBoard)
         {
             Thread.Sleep(1000);
         }
         Thread.Sleep(5000);
 
         _bot.OnGameStartEvent(bot!);
+
+        Thread.Sleep(10000);
+        if(_bot.IsInnactive)
+        {
+            _bot.RequestBoardStateUpdate();
+        }
     }
 }

@@ -17,6 +17,7 @@ public class Bot
     public int Wins { get; private set; }
     public int Losses { get; private set; }
     public int Draws { get; set; }
+    public bool IsInnactive { get; set; }
 
     private readonly Random _random = new Random();
     private readonly IMessagePublisher _messagePublisher;
@@ -39,6 +40,7 @@ public class Bot
         Side = side;
         Strategy = strategy;
         _messagePublisher = messagePublisher;
+        IsInnactive = true;
 
         GameBoard.NewGame();
     }
@@ -53,6 +55,7 @@ public class Bot
         BoardSide currentToMove = GameBoard.Pos.SideToMove.IsWhite ? BoardSide.White : BoardSide.Black;
         if (nextMove.HasValue && nextMove.Value.IsValidMove() && currentToMove.Equals(Side))
         {
+            IsInnactive = false;
             _messagePublisher.PublishMoveEvent(BoardId, Id, nextMove.Value);
         }
     }
@@ -67,6 +70,7 @@ public class Bot
 
         if (Side.Equals(BoardSide.White))
         {
+            IsInnactive = false;
             _messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove()!.Value);
         }
     }
@@ -94,6 +98,7 @@ public class Bot
         GameBoard.NewGame();
         BoardId = null;
         Side = BoardSide.Undefined;
+        IsInnactive = true;
 
         JoinGame();
     }
@@ -115,5 +120,10 @@ public class Bot
     public Move? GetNextMove()
     {
         return Strategy.GetNextMove(GameBoard);
+    }
+
+    public void RequestBoardStateUpdate()
+    {
+        _messagePublisher.PublishRequestBoardStateUpdate(Id, BoardId.Value);
     }
 }
