@@ -1,6 +1,10 @@
 ﻿using GameManager.Messaging;
+using Rudzoft.ChessLib.Types;
+using Serilog;
 using SharedDTOs.DTOs;
+using SharedDTOs.Monitoring;
 using System.Collections.Concurrent;
+using System.Numerics;
 
 namespace GameManager.Models;
 public class GamesManager
@@ -24,6 +28,7 @@ public class GamesManager
             if (!AvailablePlayers.Contains(player))
             {
                 Console.WriteLine($"Player joined {player.Id}");
+                Monitoring.Log.Information("Player joined queue: {Guid}", player.Id);
                 AvailablePlayers.Push(player);
             }
         }
@@ -37,6 +42,7 @@ public class GamesManager
             if (!AvailableBoards.Contains(boardId))
             {
                 Console.WriteLine($"Board joined {boardId}");
+                Monitoring.Log.Information("Board joined queue: {Guid}", boardId);
                 AvailableBoards.Push(boardId);
             }
         }
@@ -50,9 +56,11 @@ public class GamesManager
             Console.WriteLine("Trying to make a game...");
             Console.WriteLine($"Boards: {AvailableBoards.Count}");
             Console.WriteLine($"Players: {AvailablePlayers.Count}");
+            Monitoring.Log.Information("Current players: {PlayerCount}; Current boards: {BoardCount}", AvailablePlayers.Count, AvailableBoards.Count);
             if (AvailablePlayers.Count > 1 && AvailableBoards.Any())
             {
                 Console.WriteLine("Enough boards and players found");
+                Monitoring.Log.Information("Creating a game...");
                 AvailableBoards.TryPop(out Guid boardId);
 
                 List<BotDTO> bots = new List<BotDTO>();
@@ -70,6 +78,7 @@ public class GamesManager
                 bots[1].Side = BoardSide.Black;
                 Console.WriteLine("Made a game...");
                 _messagePublisher.PublishGameStart(boardId, bots);
+                Monitoring.Log.Information("Created a game on board {BoardId} for players {Players}", boardId, bots);
             }
         }
     }

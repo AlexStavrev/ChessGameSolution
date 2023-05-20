@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2EA6669B-D47C-4730-A8D9-BB580AEAC7AE}"
 	ProjectSection(SolutionItems) = preProject
 		cloudAMQPConnectionString.txt = cloudAMQPConnectionString.txt
+		config\local-config.yml = config\local-config.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedDTOs", "SharedDTOs\SharedDTOs.csproj", "{2231D26A-A678-4A39-93D7-8C2DF85AA26E}"

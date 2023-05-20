@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -12,6 +12,10 @@
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.4.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.4.0" />
     <PackageReference Include="Rudzoft.ChessLib" Version="0.0.3" />
+    <PackageReference Include="Serilog" Version="3.0.0-dev-01998" />
+    <PackageReference Include="Serilog.Enrichers.Span" Version="3.1.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.1-dev-00910" />
+    <PackageReference Include="Serilog.Sinks.Grafana.Loki" Version="8.1.0" />
   </ItemGroup>
 
 </Project>

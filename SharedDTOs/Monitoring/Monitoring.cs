@@ -1,6 +1,9 @@
 ﻿using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
+using Serilog.Enrichers.Span;
+using Serilog.Sinks.Grafana.Loki;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -8,8 +11,9 @@ namespace SharedDTOs.Monitoring;
 
 public class Monitoring
 {
-    public static readonly ActivitySource ActivitySource = new("SearchAPI_" + Assembly.GetEntryAssembly()?.GetName().Name, "1.0.0");
-    private static TracerProvider TracerProvider;
+    public static readonly ActivitySource ActivitySource = new("ChessGame_" + Assembly.GetEntryAssembly()?.GetName().Name, "1.0.0");
+    public static ILogger Log => Serilog.Log.Logger;
+    private static readonly TracerProvider TracerProvider;
 
     static Monitoring()
     {
@@ -28,5 +32,12 @@ public class Monitoring
             .AddSource(ActivitySource.Name)
             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName: serviceName, serviceVersion: version))
             .Build()!;
+
+        Serilog.Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Debug()
+            .Enrich.WithSpan()
+            .WriteTo.GrafanaLoki("http://loki:3100")
+            .WriteTo.Console()
+            .CreateLogger();
     }
 }
