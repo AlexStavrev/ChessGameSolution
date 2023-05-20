@@ -1,4 +1,5 @@
 ﻿using EasyNetQ;
+using Rudzoft.ChessLib;
 using Rudzoft.ChessLib.Types;
 using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
@@ -45,5 +46,16 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         };
         _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
         Console.WriteLine("Move published");
+    }
+
+    public void PublishRequestBoardStateUpdate(Guid id, Guid boardId)
+    {
+        var message = new RequestBoardUpdateEvent
+        {
+            RequesteeId = id,
+            BoardId = boardId,
+        };
+        _bus.PubSub.Publish(message, boardId.ToString());
+        Console.WriteLine("Requested board state update event");
     }
 }

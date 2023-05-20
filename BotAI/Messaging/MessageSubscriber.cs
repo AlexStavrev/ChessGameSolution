@@ -4,11 +4,13 @@ using SharedDTOs.Events;
 
 namespace BotAI.Messaging;
 
-public class MessageSubscriber : IMessageSubscriber
+public class MessageSubscriber : IMessageSubscriber, IDisposable
 {
     private readonly string _connectionString;
     private bool _isInGame = false;
     private readonly Bot _bot;
+
+    private readonly IBus _bus;
 
     private bool _isListeningToBoard = false;
 
@@ -16,6 +18,13 @@ public class MessageSubscriber : IMessageSubscriber
     {
         _connectionString = connectionString;
         _bot = bot;
+
+        _bus = RabbitHutch.CreateBus(_connectionString);
+    }
+
+    public void Dispose()
+    {
+        _bus.Dispose();
     }
 
     public void Start()
@@ -23,9 +32,7 @@ public class MessageSubscriber : IMessageSubscriber
         Console.WriteLine("Waiting for a game...");
         var botId = _bot.Id;
 
-        using var bus = RabbitHutch.CreateBus(_connectionString);
-
-        bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{botId}"));
+        var subscriptionResult = _bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{botId}"));
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
@@ -35,15 +42,15 @@ public class MessageSubscriber : IMessageSubscriber
                 Monitor.Wait(this);
             }
         }
+
+        subscriptionResult.Dispose();
     }
 
     public void StartBoardListener(Guid boardId)
     {
-        using var bus = RabbitHutch.CreateBus(_connectionString);
+        var sub1 = _bus.PubSub.Subscribe<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, x => x.WithTopic($"{boardId}"));
 
-        bus.PubSub.Subscribe<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, x => x.WithTopic($"{boardId}"));
-
-        bus.PubSub.Subscribe<GameEndEvent>("gameEnded", HandleGameEndEvent, x => x.WithTopic($"{boardId}"));
+        var sub2 = _bus.PubSub.Subscribe<GameEndEvent>("gameEnded", HandleGameEndEvent, x => x.WithTopic($"{boardId}"));
 
         Console.WriteLine($"{_bot.Id}: Listning to board {boardId}");
         _isListeningToBoard = true;
@@ -52,9 +59,14 @@ public class MessageSubscriber : IMessageSubscriber
         {
             while (_isInGame)
             {
-                Monitor.Wait(this);
+                Thread.Sleep(1000);
             }
         }
+
+        Console.WriteLine("No longer listening to board");
+
+        sub1.Dispose();
+        sub2.Dispose();
 
         _isListeningToBoard = false;
     }
@@ -86,15 +98,21 @@ public class MessageSubscriber : IMessageSubscriber
         _isInGame = true;
 
         Task.Factory.StartNew(() =>
-            StartBoardListener(bot!.BoardId!.Value)    
+            StartBoardListener(bot!.BoardId!.Value)
         );
 
-        while(!_isListeningToBoard)
+        while (!_isListeningToBoard)
         {
             Thread.Sleep(1000);
         }
         Thread.Sleep(5000);
 
         _bot.OnGameStartEvent(bot!);
+
+        Thread.Sleep(10000);
+        if(_bot.IsInnactive)
+        {
+            _bot.RequestBoardStateUpdate();
+        }
     }
 }
