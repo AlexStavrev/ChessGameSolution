@@ -25,12 +25,12 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
 
     public void PublishJoinGame(BotDTO bot)
     {
-        Thread.Sleep(_random.Next(2000, 9000));
+        Thread.Sleep(_random.Next(2000, 3000));
         var message = new JoinGameEvent
         {
             Bot = bot,
         };
-        _bus.PubSub.Publish(message);
+        _bus.PubSub.PublishWithTracingAsync(message);
     }
 
     public void PublishMoveEvent(Guid? boardId, Guid botId, Move move)
@@ -55,7 +55,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             RequesteeId = id,
             BoardId = boardId,
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
+        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
         Console.WriteLine("Requested board state update event");
     }
 }

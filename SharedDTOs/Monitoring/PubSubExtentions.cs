@@ -36,9 +36,9 @@ public static class PubSubExtensions
         return con.PublishAsync(message, topic);
     }
 
-    public static AwaitableDisposable<SubscriptionResult> SubscribeWithTracingAsync<T>(this IPubSub con, string subscriptionId, Action<T> onMessage) where T : TracingEventBase
+    public static SubscriptionResult SubscribeWithTracingAsync<T>(this IPubSub con, string subscriptionId, Action<T> onMessage) where T : TracingEventBase
     {
-        return con.SubscribeAsync(subscriptionId, (T message) =>
+        return con.Subscribe(subscriptionId, (T message) =>
         {
             var parentContext = Propagator.Extract(default, message, (msg, key) =>
             {
@@ -55,9 +55,9 @@ public static class PubSubExtensions
         });
     }
 
-    public static AwaitableDisposable<SubscriptionResult> SubscribeWithTracingAsync<T>(this IPubSub con, string subscriptionId, Action<T> onMessage, string topic) where T : TracingEventBase
+    public static SubscriptionResult SubscribeWithTracingAsync<T>(this IPubSub con, string subscriptionId, Action<T> onMessage, string topic) where T : TracingEventBase
     {
-        return con.SubscribeAsync(subscriptionId, (T message) =>
+        return con.Subscribe(subscriptionId, (T message) =>
         {
             var parentContext = Propagator.Extract(default, message, (msg, key) =>
             {

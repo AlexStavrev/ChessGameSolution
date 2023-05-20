@@ -1,6 +1,7 @@
 ﻿using BotAI.Models;
 using EasyNetQ;
 using SharedDTOs.Events;
+using SharedDTOs.Monitoring;
 
 namespace BotAI.Messaging;
 
@@ -32,7 +33,7 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
         Console.WriteLine("Waiting for a game...");
         var botId = _bot.Id;
 
-        var subscriptionResult = _bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{botId}"));
+        var subscriptionResult = _bus.PubSub.SubscribeWithTracingAsync<GameStartEvent>("gameStarted", HandleGameStartEvent, botId.ToString());
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
@@ -48,9 +49,9 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void StartBoardListener(Guid boardId)
     {
-        var sub1 = _bus.PubSub.Subscribe<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, x => x.WithTopic($"{boardId}"));
+        var sub1 = _bus.PubSub.SubscribeWithTracingAsync<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, boardId.ToString());
 
-        var sub2 = _bus.PubSub.Subscribe<GameEndEvent>("gameEnded", HandleGameEndEvent, x => x.WithTopic($"{boardId}"));
+        var sub2 = _bus.PubSub.SubscribeWithTracingAsync<GameEndEvent>("gameEnded", HandleGameEndEvent, boardId.ToString());
 
         Console.WriteLine($"{_bot.Id}: Listning to board {boardId}");
         _isListeningToBoard = true;

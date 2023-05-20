@@ -1,8 +1,7 @@
 ﻿using BoardManager.ApiClient;
-using BoardManager.Models;
-using EasyNetQ;
 using SharedDTOs.Events;
-using System.Reflection;
+using SharedDTOs.Monitoring;
+using EasyNetQ;
 
 namespace BoardManager.Messaging;
 
@@ -29,7 +28,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         {
             BoardFenState = boardFenState,
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
+        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
         
     }
 
@@ -48,7 +47,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             BoardId = boardId,
             WinnerId = winnerId
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
+        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
     }
 
     public void PublishRegisterBoard(Guid boardId)
@@ -57,6 +56,6 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         {
             BoardId = boardId,
         };
-        _bus.PubSub.Publish(message);
+        _bus.PubSub.PublishWithTracingAsync(message);
     }
 }

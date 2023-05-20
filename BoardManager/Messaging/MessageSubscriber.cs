@@ -1,7 +1,7 @@
 ﻿using BoardManager.Models;
 using EasyNetQ;
 using SharedDTOs.Events;
-using System.Linq;
+using SharedDTOs.Monitoring;
 
 namespace BoardManager.Messaging;
 public class MessageSubscriber : IMessageSubsriber
@@ -21,9 +21,9 @@ public class MessageSubscriber : IMessageSubsriber
 
         using var bus = RabbitHutch.CreateBus(_connectionString);
 
-        bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{boardId}"));
-        bus.PubSub.Subscribe<MoveEvent>("moveEvent", HandeMoveEvent, x => x.WithTopic($"{boardId}"));
-        bus.PubSub.Subscribe<RequestBoardUpdateEvent>("requestBoardUpdateEvent", HandleRequestBoardStateUpdate, x => x.WithTopic($"{boardId}"));
+        bus.PubSub.SubscribeWithTracingAsync<GameStartEvent>("gameStarted", HandleGameStartEvent, boardId.ToString());
+        bus.PubSub.SubscribeWithTracingAsync<MoveEvent>("moveEvent", HandeMoveEvent, boardId.ToString());
+        bus.PubSub.SubscribeWithTracingAsync<RequestBoardUpdateEvent>("requestBoardUpdateEvent", HandleRequestBoardStateUpdate, boardId.ToString());
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
