@@ -18,6 +18,7 @@ public class Bot
     public int Losses { get; private set; }
     public int Draws { get; set; }
     public bool IsInnactive { get; set; }
+    public DateTime LastMoved { get; set; }
 
     private readonly Random _random = new Random();
     private readonly IMessagePublisher _messagePublisher;
@@ -48,16 +49,11 @@ public class Bot
     public void OnBoardStateUpdateEvent(string boardFenState)
     {
         GameBoard = GameFactory.Create(boardFenState);
-        Move? nextMove = GetNextMove();
 
         Thread.Sleep(_random.Next(100, 200));
 
         BoardSide currentToMove = GameBoard.Pos.SideToMove.IsWhite ? BoardSide.White : BoardSide.Black;
-        if (nextMove.HasValue && nextMove.Value.IsValidMove() && currentToMove.Equals(Side))
-        {
-            IsInnactive = false;
-            _messagePublisher.PublishMoveEvent(BoardId, Id, nextMove.Value);
-        }
+        MakeMove(GetNextMove()!.Value, currentToMove);
     }
 
     public void OnGameStartEvent(BotDTO botDto)
@@ -68,11 +64,31 @@ public class Bot
 
         Thread.Sleep(_random.Next(1000, 2000));
 
-        if (Side.Equals(BoardSide.White))
+        MakeMove(GetNextMove()!.Value, BoardSide.White);
+    }
+
+    public void MakeMove(Move? move, BoardSide sideToMove)
+    {
+        if (move.HasValue && move.Value.IsValidMove() && sideToMove.Equals(Side))
         {
+            LastMoved = DateTime.UtcNow;
             IsInnactive = false;
-            _messagePublisher.PublishMoveEvent(BoardId, Id, GetNextMove()!.Value);
+            _messagePublisher.PublishMoveEvent(BoardId, Id, move.Value);
         }
+        /*Thread.Sleep(2100);
+
+        TimeSpan timeSinceLastMove = DateTime.UtcNow - LastMoved;
+        if (timeSinceLastMove > TimeSpan.FromSeconds(2))
+        {
+            Id = Guid.NewGuid();
+            Strategy = StrategyFactory.GetRandomStrategy();
+            GameBoard.NewGame();
+            BoardId = null;
+            Side = BoardSide.Undefined;
+            IsInnactive = true;
+
+            JoinGame();
+        }*/
     }
 
     public void OnGameEndEvent(Guid winnerGuid)
@@ -105,7 +121,7 @@ public class Bot
 
     public void JoinGame()
     {
-        Thread.Sleep(_random.Next(1000, 3000));
+        Thread.Sleep(_random.Next(6000, 8000));
         Console.WriteLine($"{Id}: Joining game. W:{Wins} L:{Losses} D:{Draws}; Strategy: {Strategy}");
         var botDto = new BotDTO()
         {
@@ -124,6 +140,9 @@ public class Bot
 
     public void RequestBoardStateUpdate()
     {
-        _messagePublisher.PublishRequestBoardStateUpdate(Id, BoardId.Value);
+        if(BoardId.HasValue)
+        {
+            _messagePublisher.PublishRequestBoardStateUpdate(Id, BoardId.Value);
+        }
     }
 }
