@@ -26,7 +26,7 @@ public class Monitoring
                 options.AgentPort = 6831;
             })
             .AddSource(ActivitySource.Name)
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName: "test2", serviceVersion: version))
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName: serviceName, serviceVersion: version))
             .Build()!;
     }
 }
