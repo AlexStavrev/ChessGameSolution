@@ -3,7 +3,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Enrichers.Span;
-using Serilog.Sinks.Grafana.Loki;
+using Serilog.Sinks.Loki;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -36,8 +36,10 @@ public class Monitoring
         Serilog.Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .Enrich.WithSpan()
-            .WriteTo.GrafanaLoki("http://loki:3100")
+            .WriteTo.LokiHttp("http://loki:3100")
             .WriteTo.Console()
             .CreateLogger();
+
+        Log.Debug("Hello, Loki!");
     }
 }

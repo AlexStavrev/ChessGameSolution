@@ -2,5 +2,5 @@
 
 public class TracingEventBase
 {
-    public IDictionary<string,string> Headers { get; set; }
+    public Dictionary<string, string> Headers { get; set; } = new();
 }

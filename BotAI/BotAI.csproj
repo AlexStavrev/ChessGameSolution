@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Rudzoft.ChessLib" Version="0.0.3" />
+    <PackageReference Include="Serilog.Sinks.Loki" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
