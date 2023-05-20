@@ -2,6 +2,7 @@
 using SharedDTOs.Events;
 using SharedDTOs.Monitoring;
 using EasyNetQ;
+using System.Reflection;
 
 namespace BoardManager.Messaging;
 
@@ -52,6 +53,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
 
     public void PublishRegisterBoard(Guid boardId)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         var message = new RegisterBoardEvent
         {
             BoardId = boardId,

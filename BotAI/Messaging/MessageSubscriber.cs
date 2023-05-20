@@ -2,6 +2,7 @@
 using EasyNetQ;
 using SharedDTOs.Events;
 using SharedDTOs.Monitoring;
+using System.Reflection;
 
 namespace BotAI.Messaging;
 
@@ -30,6 +31,7 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void Start()
     {
+        
         Console.WriteLine("Waiting for a game...");
         var botId = _bot.Id;
 
@@ -74,12 +76,14 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void HandeBoardStateUpdate(BoardStateUdpateEvent boardStateUpadate)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine("Board updated");
         _bot.OnBoardStateUpdateEvent(boardStateUpadate.BoardFenState);
     }
 
     public void HandleGameEndEvent(GameEndEvent gameEndEvent)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine("Game end event received");
         _bot.OnGameEndEvent(gameEndEvent.WinnerId);
         _isInGame = false;
@@ -88,6 +92,7 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine("Game started");
         var bot = gameStartEvent.Bots.Where(bot => bot.Id.Equals(_bot.Id)).First();
         if (bot == null)

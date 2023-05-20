@@ -4,6 +4,8 @@ using Rudzoft.ChessLib.Factories;
 using Rudzoft.ChessLib.Types;
 using SharedDTOs.DTOs;
 using Rudzoft.ChessLib.Enums;
+using SharedDTOs.Monitoring;
+using System.Reflection;
 
 namespace BoardManager.Models;
 
@@ -33,6 +35,7 @@ public class ChessBoard
 
     public void RegisterBoard()
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         _messagePublisher.PublishRegisterBoard(Id);
     }
 

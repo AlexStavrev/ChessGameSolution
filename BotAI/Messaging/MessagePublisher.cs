@@ -4,6 +4,7 @@ using Rudzoft.ChessLib.Types;
 using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
+using System.Reflection;
 
 namespace BotAI.Messaging;
 
@@ -25,6 +26,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
 
     public void PublishJoinGame(BotDTO bot)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Thread.Sleep(_random.Next(2000, 3000));
         var message = new JoinGameEvent
         {

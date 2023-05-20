@@ -2,6 +2,7 @@
 using EasyNetQ;
 using SharedDTOs.Events;
 using SharedDTOs.Monitoring;
+using System.Reflection;
 
 namespace BoardManager.Messaging;
 public class MessageSubscriber : IMessageSubsriber
@@ -34,6 +35,7 @@ public class MessageSubscriber : IMessageSubsriber
 
     public void HandeMoveEvent(MoveEvent moveEvent)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine($"{_board} Movement received {moveEvent.BotId}; {moveEvent.Move}");
         if(!moveEvent.Move.HasValue)
         {
@@ -46,13 +48,15 @@ public class MessageSubscriber : IMessageSubsriber
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine($"{_board} Game Started...");
         _board.StartGame(gameStartEvent.Bots);
     }
 
     public void HandleRequestBoardStateUpdate(RequestBoardUpdateEvent requestBoardUpdateEvent)
     {
-        if(_board.Bots.Select(bot => bot.Id.Equals(requestBoardUpdateEvent.RequesteeId)).Any())
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
+        if (_board.Bots.Select(bot => bot.Id.Equals(requestBoardUpdateEvent.RequesteeId)).Any())
         {
             _board.UpdateBoardState();
         }

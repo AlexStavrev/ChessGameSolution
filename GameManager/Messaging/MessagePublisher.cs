@@ -2,6 +2,7 @@
 using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
+using System.Reflection;
 
 namespace GameManager.Messaging
 {
@@ -22,6 +23,7 @@ namespace GameManager.Messaging
 
         public void PublishGameStart(Guid boardId, ICollection<BotDTO> bots)
         {
+            using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
             var message = new GameStartEvent
             {
                 BoardId = boardId,

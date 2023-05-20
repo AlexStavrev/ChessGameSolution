@@ -50,7 +50,7 @@ public static class PubSubExtensions
                 return Enumerable.Empty<string>();
             });
     
-            using var activity = Monitoring.ActivitySource.StartActivity("Received message", ActivityKind.Consumer, parentContext.ActivityContext);
+            using var activity = Monitoring.ActivitySource.StartActivity(ActivityKind.Consumer, parentContext.ActivityContext);
             onMessage(message);
         });
     }
@@ -69,7 +69,7 @@ public static class PubSubExtensions
                 return Enumerable.Empty<string>();
             });
 
-            using var activity = Monitoring.ActivitySource.StartActivity("Received message", ActivityKind.Consumer, parentContext.ActivityContext);
+            using var activity = Monitoring.ActivitySource.StartActivity(ActivityKind.Consumer, parentContext.ActivityContext);
             onMessage(message);
         }, x => x.WithTopic(topic));
     }

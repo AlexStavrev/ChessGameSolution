@@ -1,6 +1,8 @@
 ﻿using GameManager.Messaging;
 using SharedDTOs.DTOs;
+using SharedDTOs.Monitoring;
 using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace GameManager.Models;
 public class GamesManager
@@ -19,6 +21,7 @@ public class GamesManager
 
     public void OnPlayerJoinEvent(BotDTO player)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         lock (_lockObject)
         {
             if (!AvailablePlayers.Contains(player))
@@ -32,6 +35,7 @@ public class GamesManager
 
     public void OnBoardRegisterEvent(Guid boardId)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         lock (_lockObject)
         {
             if (!AvailableBoards.Contains(boardId))
@@ -45,6 +49,7 @@ public class GamesManager
 
     public void TryToMakeGame()
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         lock (_lockObject)
         {
             Console.WriteLine("Trying to make a game...");

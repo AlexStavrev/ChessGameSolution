@@ -8,7 +8,7 @@ namespace SharedDTOs.Monitoring;
 
 public class Monitoring
 {
-    public static readonly ActivitySource ActivitySource = new("SearchAPI_" + Assembly.GetEntryAssembly()?.GetName().Name, "1.0.0");
+    public static readonly ActivitySource ActivitySource = new("ChessGame_" + Assembly.GetEntryAssembly()?.GetName().Name, "1.0.0");
     private static TracerProvider TracerProvider;
 
     static Monitoring()
@@ -26,7 +26,7 @@ public class Monitoring
                 options.AgentPort = 6831;
             })
             .AddSource(ActivitySource.Name)
-            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName: serviceName, serviceVersion: version))
+            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName: "test2", serviceVersion: version))
             .Build()!;
     }
 }
