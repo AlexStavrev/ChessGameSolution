@@ -4,6 +4,7 @@ using Rudzoft.ChessLib.Types;
 using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
+using Microsoft.Extensions.Logging;
 
 namespace BotAI.Messaging;
 
@@ -31,11 +32,11 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             Bot = bot,
         };
         _bus.PubSub.Publish(message);
+        Monitoring.Log.LogInformation("Published join game event...");
     }
 
     public void PublishMoveEvent(Guid? boardId, Guid botId, Move move)
     {
-        Console.WriteLine($"Making a move {move}");
         Thread.Sleep(_random.Next(100, 800));
         var message = new MoveEvent
         {
@@ -45,7 +46,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             
         };
         _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
-        Console.WriteLine("Move published");
+        Monitoring.Log.LogInformation("Published move event...");
     }
 
     public void PublishRequestBoardStateUpdate(Guid id, Guid boardId)
@@ -56,6 +57,6 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             BoardId = boardId,
         };
         _bus.PubSub.Publish(message, boardId.ToString());
-        Console.WriteLine("Requested board state update event");
+        Monitoring.Log.LogInformation("Published requested board state update event...");
     }
 }

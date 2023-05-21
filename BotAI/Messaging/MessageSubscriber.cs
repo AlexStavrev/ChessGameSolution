@@ -1,6 +1,8 @@
 ﻿using BotAI.Models;
 using EasyNetQ;
+using Microsoft.Extensions.Logging;
 using SharedDTOs.Events;
+using SharedDTOs.Monitoring;
 
 namespace BotAI.Messaging;
 
@@ -29,10 +31,10 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void Start()
     {
-        Console.WriteLine("Waiting for a game...");
         var botId = _bot.Id;
-
         var subscriptionResult = _bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{botId}"));
+
+        Monitoring.Log.LogInformation("Message listener for game started initialized.");
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
@@ -44,6 +46,7 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
         }
 
         subscriptionResult.Dispose();
+        Monitoring.Log.LogInformation("No longer listening for game started events...");
     }
 
     public void StartBoardListener(Guid boardId)
@@ -52,7 +55,7 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
         var sub2 = _bus.PubSub.Subscribe<GameEndEvent>("gameEnded", HandleGameEndEvent, x => x.WithTopic($"{boardId}"));
 
-        Console.WriteLine($"{_bot.Id}: Listning to board {boardId}");
+        Monitoring.Log.LogInformation("Message listener for board updates and game end events initialized.");
         _isListeningToBoard = true;
 
         lock (this)
@@ -63,23 +66,23 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
             }
         }
 
-        Console.WriteLine("No longer listening to board");
-
         sub1.Dispose();
         sub2.Dispose();
 
         _isListeningToBoard = false;
+
+        Monitoring.Log.LogInformation("No longer listening for board updates and game end events.");
     }
 
     public void HandeBoardStateUpdate(BoardStateUdpateEvent boardStateUpadate)
     {
-        Console.WriteLine("Board updated");
+        Monitoring.Log.LogInformation("Board state event received...");
         _bot.OnBoardStateUpdateEvent(boardStateUpadate.BoardFenState);
     }
 
     public void HandleGameEndEvent(GameEndEvent gameEndEvent)
     {
-        Console.WriteLine("Game end event received");
+        Monitoring.Log.LogInformation("Game end event received...");
         _bot.OnGameEndEvent(gameEndEvent.WinnerId);
         _isInGame = false;
         Start();
@@ -87,10 +90,11 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
-        Console.WriteLine("Game started");
+        Monitoring.Log.LogInformation("Game started event received...");
         var bot = gameStartEvent.Bots.Where(bot => bot.Id.Equals(_bot.Id)).First();
         if (bot == null)
         {
+            Monitoring.Log.LogBotNotInStartGameEventWarning(_bot.Id, gameStartEvent);
             throw new ArgumentException($"Unable to find bot with id {bot.Id}");
         }
         bot!.BoardId = gameStartEvent.BoardId;

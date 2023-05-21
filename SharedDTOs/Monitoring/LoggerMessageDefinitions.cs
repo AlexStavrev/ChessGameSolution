@@ -3,9 +3,12 @@ using Rudzoft.ChessLib;
 using Rudzoft.ChessLib.Enums;
 using Rudzoft.ChessLib.Types;
 using SharedDTOs.DTOs;
+using SharedDTOs.Events;
 
 namespace SharedDTOs.Monitoring;
 
+
+// Game Manager definitions
 public static partial class LoggerMessageDefinitions_GameManager
 {
     [LoggerMessage(EventId = 0, Level = LogLevel.Information,
@@ -42,6 +45,8 @@ public static partial class LoggerMessageDefinitionsWarnings_GameManager
     public static partial void LogPlayerAlreadyInQueueWarning(this ILogger logger, Guid playerId);
 }
 
+
+// Board Manager Definitions
 public static partial class LoggerMessageDefinitions_BoardManager
 {
     [LoggerMessage(EventId = 0, Level = LogLevel.Information,
@@ -75,4 +80,60 @@ public static partial class LoggerMessageDefinitionsWarnings_BoardManager
         Message = "Player {PlayerId} tried to make an invalid move {InvalidMove} on {GameBoard}!"
     )]
     public static partial void LogInvalidMoveWarning(this ILogger logger, Guid playerId, Move invalidMove, IGame gameBoard);
+}
+
+// BotAI Definitions
+public static partial class LoggerMessageDefinitions_BotAI
+{
+    [LoggerMessage(EventId = 0, Level = LogLevel.Information,
+        Message = "Player joined queue: {PlayerId}"
+    )]
+    public static partial void LogPlayerJoinQueueMessage(this ILogger logger, Guid playerId);
+    
+    [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+        Message = "Board Updated: {BoardFenState}"
+    )]
+    public static partial void LogBoardStateUpdateMessage(this ILogger logger, string boardFenState);
+
+    [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+        Message = "Game started: Bot state: {Bot}"
+    )]
+    public static partial void LogGameStartedMessage(this ILogger logger, BotDTO bot);
+
+    [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+       Message = "{BotId}: Making move: {Move}"
+   )]
+    public static partial void LogMakeMoveEvent(this ILogger logger, Guid botId, Move move);
+
+    [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+       Message = "{BotId}: Game ended; {Result}; WinnerId: {WinnerId} on board {BoardId}. Game board state: {GameBoard}."
+    )]
+    public static partial void LogEndGameEventMessage(this ILogger logger, Guid botId, Guid winnerId, string result, Guid boardId, IGame gameBoard);
+
+    [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+       Message = "{BotId}: Joining queue; Wins: {Wins}, Losses: {Losses}, Draws: {Draws}; Strategy: {Strategy}."
+    )]
+    public static partial void LogJoinGameEventMessage(this ILogger logger, Guid botId, int Wins, int Losses, int Draws, string strategy);
+
+    [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+       Message = "{BotId}: Getting next move with strategy {Strategy}."
+    )]
+    public static partial void LogGetNextMoveMessage(this ILogger logger, Guid botId, string strategy);
+
+    [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+   Message = "{BotId}: Retrieved move {Move}."
+)]
+    public static partial void LogRetrievedNextMoveMessage(this ILogger logger, Guid botId, Move? move);
+}
+public static partial class LoggerMessageDefinitionsWarnings_BotAI
+{
+    [LoggerMessage(EventId = 0, Level = LogLevel.Warning,
+        Message = "Bot {botId} is not part of the game in game start event {GameStartEvent}"
+    )]
+    public static partial void LogBotNotInStartGameEventWarning(this ILogger logger, Guid botId, GameStartEvent gameStartEvent);
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Warning,
+        Message = "Error while getting next move using {MoveType}; Error message was: {ExceptionMessage}"
+    )]
+    public static partial void LogGetNextMoveStrategyErrorWarning(this ILogger logger, MoveGenerationType moveType, string exceptionMessage);
 }
