@@ -3,7 +3,6 @@ using EasyNetQ;
 using Microsoft.Extensions.Logging;
 using SharedDTOs.Events;
 using SharedDTOs.Monitoring;
-using System.Linq;
 
 namespace BoardManager.Messaging;
 public class MessageSubscriber : IMessageSubsriber
