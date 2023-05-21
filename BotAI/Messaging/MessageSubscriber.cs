@@ -35,7 +35,7 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
         Console.WriteLine("Waiting for a game...");
         var botId = _bot.Id;
 
-        var subscriptionResult = _bus.PubSub.SubscribeWithTracingAsync<GameStartEvent>("gameStarted", HandleGameStartEvent, botId.ToString());
+        var subscriptionResult = _bus.SubscribeWithTracingAsync<GameStartEvent>("gameStarted", HandleGameStartEvent, botId.ToString());
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
@@ -51,9 +51,9 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void StartBoardListener(Guid boardId)
     {
-        var sub1 = _bus.PubSub.SubscribeWithTracingAsync<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, boardId.ToString());
+        var sub1 = _bus.SubscribeWithTracingAsync<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, boardId.ToString());
 
-        var sub2 = _bus.PubSub.SubscribeWithTracingAsync<GameEndEvent>("gameEnded", HandleGameEndEvent, boardId.ToString());
+        var sub2 = _bus.SubscribeWithTracingAsync<GameEndEvent>("gameEnded", HandleGameEndEvent, boardId.ToString());
 
         Console.WriteLine($"{_bot.Id}: Listning to board {boardId}");
         _isListeningToBoard = true;

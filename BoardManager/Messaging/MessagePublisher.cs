@@ -29,7 +29,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         {
             BoardFenState = boardFenState,
         };
-        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
         
     }
 
@@ -48,7 +48,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             BoardId = boardId,
             WinnerId = winnerId
         };
-        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
     }
 
     public void PublishRegisterBoard(Guid boardId)
@@ -58,6 +58,6 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         {
             BoardId = boardId,
         };
-        _bus.PubSub.PublishWithTracingAsync(message);
+        _bus.PublishWithTracingAsync(message);
     }
 }

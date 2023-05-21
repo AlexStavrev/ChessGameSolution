@@ -32,7 +32,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         {
             Bot = bot,
         };
-        _bus.PubSub.PublishWithTracingAsync(message);
+        _bus.PublishWithTracingAsync(message);
     }
 
     public void PublishMoveEvent(Guid? boardId, Guid botId, Move move)
@@ -46,7 +46,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             Move = move,
             
         };
-        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
         Console.WriteLine("Move published");
     }
 
@@ -57,7 +57,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             RequesteeId = id,
             BoardId = boardId,
         };
-        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
         Console.WriteLine("Requested board state update event");
     }
 }

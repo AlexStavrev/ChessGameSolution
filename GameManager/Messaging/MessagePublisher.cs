@@ -32,10 +32,10 @@ namespace GameManager.Messaging
 
             foreach (var bot in bots)
             {
-                _bus.PubSub.PublishWithTracingAsync<GameStartEvent>(message, bot.Id.ToString());
+                _bus.PublishWithTracingAsync<GameStartEvent>(message, bot.Id.ToString());
             }
 
-            _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
+            _bus.PublishWithTracingAsync(message, boardId.ToString());
         }
     }
 }

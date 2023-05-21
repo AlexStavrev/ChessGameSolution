@@ -22,9 +22,9 @@ public class MessageSubscriber : IMessageSubsriber
 
         using var bus = RabbitHutch.CreateBus(_connectionString);
 
-        bus.PubSub.SubscribeWithTracingAsync<GameStartEvent>("gameStarted", HandleGameStartEvent, boardId.ToString());
-        bus.PubSub.SubscribeWithTracingAsync<MoveEvent>("moveEvent", HandeMoveEvent, boardId.ToString());
-        bus.PubSub.SubscribeWithTracingAsync<RequestBoardUpdateEvent>("requestBoardUpdateEvent", HandleRequestBoardStateUpdate, boardId.ToString());
+        bus.SubscribeWithTracingAsync<GameStartEvent>("gameStarted", HandleGameStartEvent, boardId.ToString());
+        bus.SubscribeWithTracingAsync<MoveEvent>("moveEvent", HandeMoveEvent, boardId.ToString());
+        bus.SubscribeWithTracingAsync<RequestBoardUpdateEvent>("requestBoardUpdateEvent", HandleRequestBoardStateUpdate, boardId.ToString());
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
