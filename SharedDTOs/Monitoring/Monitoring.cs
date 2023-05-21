@@ -1,4 +1,5 @@
-﻿using OpenTelemetry;
+﻿using Microsoft.Extensions.Logging;
+using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -12,7 +13,7 @@ namespace SharedDTOs.Monitoring;
 public class Monitoring
 {
     public static readonly ActivitySource ActivitySource = new("ChessGame_" + Assembly.GetEntryAssembly()?.GetName().Name, "1.0.0");
-    public static ILogger Log => Serilog.Log.Logger;
+    public static Microsoft.Extensions.Logging.ILogger Log { get; set; }
     private static readonly TracerProvider TracerProvider;
 
     static Monitoring()
@@ -33,13 +34,16 @@ public class Monitoring
             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(serviceName: serviceName, serviceVersion: version))
             .Build()!;
 
-        Serilog.Log.Logger = new LoggerConfiguration()
+        Serilog.Core.Logger serilog = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .Enrich.WithSpan()
             .WriteTo.LokiHttp("http://loki:3100")
             .WriteTo.Console()
             .CreateLogger();
 
-        Log.Debug("Hello, Loki!");
+        var loggerFactory = new LoggerFactory().AddSerilog(serilog);
+        Log = loggerFactory.CreateLogger("Logger");
+
+        Log.LogDebug("Hello, Loki!");
     }
 }
