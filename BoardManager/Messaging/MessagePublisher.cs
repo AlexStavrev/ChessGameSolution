@@ -1,7 +1,9 @@
 ﻿using BoardManager.ApiClient;
 using BoardManager.Models;
 using EasyNetQ;
+using Microsoft.Extensions.Logging;
 using SharedDTOs.Events;
+using SharedDTOs.Monitoring;
 using System.Reflection;
 
 namespace BoardManager.Messaging;
@@ -30,25 +32,24 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             BoardFenState = boardFenState,
         };
         _bus.PubSub.Publish(message, boardId.ToString());
-        
+        Monitoring.Log.LogInformation("Published board state update event...");
     }
 
     public async Task PublishGUIBoardStateUpdate(string boardFenState)
     {
         var request = await _apiClient.PostBoardUpdate(boardFenState);
-        Console.WriteLine($"Request result: {request.StatusCode}");
+        Monitoring.Log.LogInformation("Published GUI update event...");
     }
 
     public void PublishEndGameEvent(Guid boardId, Guid winnerId)
     {
-        var winner = winnerId.Equals(new Guid()) ? "Draw" : winnerId.ToString();
-        Console.WriteLine($"Game ended; Winner: {winner}");
         var message = new GameEndEvent
         {
             BoardId = boardId,
             WinnerId = winnerId
         };
         _bus.PubSub.Publish(message, boardId.ToString());
+        Monitoring.Log.LogInformation("Published end game event...");
     }
 
     public void PublishRegisterBoard(Guid boardId)
@@ -58,5 +59,6 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             BoardId = boardId,
         };
         _bus.PubSub.Publish(message);
+        Monitoring.Log.LogInformation("Published register event...");
     }
 }
