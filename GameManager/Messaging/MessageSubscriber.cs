@@ -2,6 +2,7 @@
 using GameManager.Models;
 using SharedDTOs.Monitoring;
 using SharedDTOs.Events;
+using Microsoft.Extensions.Logging;
 
 namespace GameManager.Messaging;
 public class MessageSubscriber : IMessageSubscriber
@@ -22,20 +23,24 @@ public class MessageSubscriber : IMessageSubscriber
         bus.PubSub.SubscribeWithTracingAsync<JoinGameEvent>("joinGameEvent", HandePlayerJoinEvent);
         bus.PubSub.SubscribeWithTracingAsync<RegisterBoardEvent>("registerBoardEvent", HandleBoardRegisterEvent);
 
+        Monitoring.Log.LogInformation("Message listener initialized.");
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
         {
             Monitor.Wait(this);
         }
+        Monitoring.Log.LogInformation("Shutting down message listener.");
     }
 
     public void HandePlayerJoinEvent(JoinGameEvent joinGameEvent)
     {
+        Monitoring.Log.LogInformation("Received player join event.");
         _gamesManager.OnPlayerJoinEvent(joinGameEvent.Bot);
     }
 
     public void HandleBoardRegisterEvent(RegisterBoardEvent registerBoardEvent)
     {
+        Monitoring.Log.LogInformation("Received board join event.");
         _gamesManager.OnBoardRegisterEvent(registerBoardEvent.BoardId);
     }
 }

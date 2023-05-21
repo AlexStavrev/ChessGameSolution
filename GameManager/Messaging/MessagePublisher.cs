@@ -2,6 +2,7 @@
 using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
+using Microsoft.Extensions.Logging;
 
 namespace GameManager.Messaging
 {
@@ -34,6 +35,7 @@ namespace GameManager.Messaging
             }
 
             _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
+            Monitoring.Log.LogInformation("Published game start event...");
         }
     }
 }
