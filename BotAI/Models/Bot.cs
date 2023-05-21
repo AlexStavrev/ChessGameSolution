@@ -95,6 +95,7 @@ public class Bot
 
     public void OnGameEndEvent(Guid winnerGuid)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         if (Id.Equals(winnerGuid))
         {
             Wins++;

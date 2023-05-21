@@ -8,13 +8,13 @@ namespace SharedDTOs.Monitoring;
 
 public class Monitoring
 {
-    public static readonly ActivitySource ActivitySource = new("ChessGame_" + Assembly.GetEntryAssembly()?.GetName().Name, "1.0.0");
+    public static readonly ActivitySource ActivitySource = new("ChessGame_" + Assembly.GetCallingAssembly()?.GetName().Name, "1.0.0");
     private static TracerProvider TracerProvider;
 
     static Monitoring()
     {
         // Configure tracing
-        var serviceName = Assembly.GetExecutingAssembly().GetName().Name;
+        var serviceName = Assembly.GetCallingAssembly().GetName().Name;
         var version = "1.0.0";
 
         TracerProvider = Sdk.CreateTracerProviderBuilder()
