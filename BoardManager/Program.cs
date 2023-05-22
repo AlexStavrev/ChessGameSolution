@@ -8,6 +8,7 @@ string cloudAMQPConnectionString = File.ReadAllText(@"/app/cloudAMQPConnectionSt
 var bus = RabbitHutch.CreateBus(cloudAMQPConnectionString);
 var messagePublisher = new MessagePublisher(bus, new ApiClient());
 
+
 var board = new ChessBoard(messagePublisher);
 var task = Task.Factory.StartNew(() =>
     new MessageSubscriber(cloudAMQPConnectionString, board).Start()

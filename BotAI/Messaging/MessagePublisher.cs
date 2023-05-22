@@ -1,8 +1,10 @@
 ﻿using EasyNetQ;
 using Rudzoft.ChessLib;
 using Rudzoft.ChessLib.Types;
+using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
+using System.Reflection;
 
 namespace BotAI.Messaging;
 
@@ -24,12 +26,13 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
 
     public void PublishJoinGame(BotDTO bot)
     {
-        Thread.Sleep(_random.Next(2000, 9000));
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
+        Thread.Sleep(_random.Next(2000, 3000));
         var message = new JoinGameEvent
         {
             Bot = bot,
         };
-        _bus.PubSub.Publish(message);
+        _bus.PublishWithTracingAsync(message);
     }
 
     public void PublishMoveEvent(Guid? boardId, Guid botId, Move move)
@@ -43,7 +46,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             Move = move,
             
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
         Console.WriteLine("Move published");
     }
 
@@ -54,7 +57,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             RequesteeId = id,
             BoardId = boardId,
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
         Console.WriteLine("Requested board state update event");
     }
 }

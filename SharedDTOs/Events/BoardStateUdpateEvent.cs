@@ -1,6 +1,8 @@
-﻿namespace SharedDTOs.Events;
+﻿using SharedDTOs.Monitoring;
 
-public class BoardStateUdpateEvent
+namespace SharedDTOs.Events;
+
+public class BoardStateUdpateEvent : TracingEventBase
 {
     public string BoardFenState { get; set; }
 }

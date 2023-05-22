@@ -1,6 +1,8 @@
 ﻿using BotAI.Models;
 using EasyNetQ;
 using SharedDTOs.Events;
+using SharedDTOs.Monitoring;
+using System.Reflection;
 
 namespace BotAI.Messaging;
 
@@ -29,10 +31,11 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void Start()
     {
+        
         Console.WriteLine("Waiting for a game...");
         var botId = _bot.Id;
 
-        var subscriptionResult = _bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{botId}"));
+        var subscriptionResult = _bus.SubscribeWithTracingAsync<GameStartEvent>("gameStarted", HandleGameStartEvent, botId.ToString());
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
@@ -48,9 +51,9 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void StartBoardListener(Guid boardId)
     {
-        var sub1 = _bus.PubSub.Subscribe<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, x => x.WithTopic($"{boardId}"));
+        var sub1 = _bus.SubscribeWithTracingAsync<BoardStateUdpateEvent>("boardStateUpdated", HandeBoardStateUpdate, boardId.ToString());
 
-        var sub2 = _bus.PubSub.Subscribe<GameEndEvent>("gameEnded", HandleGameEndEvent, x => x.WithTopic($"{boardId}"));
+        var sub2 = _bus.SubscribeWithTracingAsync<GameEndEvent>("gameEnded", HandleGameEndEvent, boardId.ToString());
 
         Console.WriteLine($"{_bot.Id}: Listning to board {boardId}");
         _isListeningToBoard = true;
@@ -73,12 +76,14 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void HandeBoardStateUpdate(BoardStateUdpateEvent boardStateUpadate)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine("Board updated");
         _bot.OnBoardStateUpdateEvent(boardStateUpadate.BoardFenState);
     }
 
     public void HandleGameEndEvent(GameEndEvent gameEndEvent)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine("Game end event received");
         _bot.OnGameEndEvent(gameEndEvent.WinnerId);
         _isInGame = false;
@@ -87,6 +92,7 @@ public class MessageSubscriber : IMessageSubscriber, IDisposable
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine("Game started");
         var bot = gameStartEvent.Bots.Where(bot => bot.Id.Equals(_bot.Id)).First();
         if (bot == null)

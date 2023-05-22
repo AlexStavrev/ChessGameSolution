@@ -1,6 +1,8 @@
 ﻿using EasyNetQ;
+using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
+using System.Reflection;
 
 namespace GameManager.Messaging
 {
@@ -21,6 +23,7 @@ namespace GameManager.Messaging
 
         public void PublishGameStart(Guid boardId, ICollection<BotDTO> bots)
         {
+            using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
             var message = new GameStartEvent
             {
                 BoardId = boardId,
@@ -29,10 +32,10 @@ namespace GameManager.Messaging
 
             foreach (var bot in bots)
             {
-                _bus.PubSub.Publish(message, bot.Id.ToString());
+                _bus.PublishWithTracingAsync<GameStartEvent>(message, bot.Id.ToString());
             }
 
-            _bus.PubSub.Publish(message, boardId.ToString());
+            _bus.PublishWithTracingAsync(message, boardId.ToString());
         }
     }
 }

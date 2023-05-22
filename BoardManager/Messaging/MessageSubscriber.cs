@@ -1,7 +1,8 @@
 ﻿using BoardManager.Models;
 using EasyNetQ;
 using SharedDTOs.Events;
-using System.Linq;
+using SharedDTOs.Monitoring;
+using System.Reflection;
 
 namespace BoardManager.Messaging;
 public class MessageSubscriber : IMessageSubsriber
@@ -21,9 +22,9 @@ public class MessageSubscriber : IMessageSubsriber
 
         using var bus = RabbitHutch.CreateBus(_connectionString);
 
-        bus.PubSub.Subscribe<GameStartEvent>("gameStarted", HandleGameStartEvent, x => x.WithTopic($"{boardId}"));
-        bus.PubSub.Subscribe<MoveEvent>("moveEvent", HandeMoveEvent, x => x.WithTopic($"{boardId}"));
-        bus.PubSub.Subscribe<RequestBoardUpdateEvent>("requestBoardUpdateEvent", HandleRequestBoardStateUpdate, x => x.WithTopic($"{boardId}"));
+        bus.SubscribeWithTracingAsync<GameStartEvent>("gameStarted", HandleGameStartEvent, boardId.ToString());
+        bus.SubscribeWithTracingAsync<MoveEvent>("moveEvent", HandeMoveEvent, boardId.ToString());
+        bus.SubscribeWithTracingAsync<RequestBoardUpdateEvent>("requestBoardUpdateEvent", HandleRequestBoardStateUpdate, boardId.ToString());
 
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
@@ -34,6 +35,7 @@ public class MessageSubscriber : IMessageSubsriber
 
     public void HandeMoveEvent(MoveEvent moveEvent)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine($"{_board} Movement received {moveEvent.BotId}; {moveEvent.Move}");
         if(!moveEvent.Move.HasValue)
         {
@@ -46,13 +48,15 @@ public class MessageSubscriber : IMessageSubsriber
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Console.WriteLine($"{_board} Game Started...");
         _board.StartGame(gameStartEvent.Bots);
     }
 
     public void HandleRequestBoardStateUpdate(RequestBoardUpdateEvent requestBoardUpdateEvent)
     {
-        if(_board.Bots.Select(bot => bot.Id.Equals(requestBoardUpdateEvent.RequesteeId)).Any())
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
+        if (_board.Bots.Select(bot => bot.Id.Equals(requestBoardUpdateEvent.RequesteeId)).Any())
         {
             _board.UpdateBoardState();
         }
