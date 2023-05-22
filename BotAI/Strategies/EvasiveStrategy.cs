@@ -2,6 +2,7 @@
 using Rudzoft.ChessLib.MoveGeneration;
 using Rudzoft.ChessLib.Types;
 using Rudzoft.ChessLib.Enums;
+using SharedDTOs.Monitoring;
 
 namespace BotAI.Strategies;
 public class EvasiveStrategy : IBotStrategy
@@ -29,7 +30,7 @@ public class EvasiveStrategy : IBotStrategy
             }
             catch(IndexOutOfRangeException ex)
             {
-                Console.WriteLine($"Index out of range exeption for {moveType}, {ex.Message}");
+                Monitoring.Log.LogGetNextMoveStrategyErrorWarning(moveType, ex.Message);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using BotAI.Messaging;
 using BotAI.Strategies;
+using Microsoft.Extensions.Logging;
 using Rudzoft.ChessLib;
 using Rudzoft.ChessLib.Factories;
 using Rudzoft.ChessLib.Types;
@@ -50,6 +51,7 @@ public class Bot
 
     public void OnBoardStateUpdateEvent(string boardFenState)
     {
+        Monitoring.Log.LogBoardStateUpdateMessage(boardFenState);
         GameBoard = GameFactory.Create(boardFenState);
 
         Thread.Sleep(_random.Next(100, 200));
@@ -60,6 +62,8 @@ public class Bot
 
     public void OnGameStartEvent(BotDTO botDto)
     {
+        Monitoring.Log.LogGameStartedMessage(botDto);
+
         GameBoard = GameFactory.Create(botDto.GameBoardFen);
         BoardId = botDto.BoardId;
         Side = (BoardSide)((int)botDto.Side);
@@ -73,6 +77,8 @@ public class Bot
     {
         if (move.HasValue && move.Value.IsValidMove() && sideToMove.Equals(Side))
         {
+            Monitoring.Log.LogMakeMoveEvent(Id, move.Value);
+
             LastMoved = DateTime.UtcNow;
             IsInnactive = false;
             _messagePublisher.PublishMoveEvent(BoardId, Id, move.Value);
@@ -95,22 +101,23 @@ public class Bot
 
     public void OnGameEndEvent(Guid winnerGuid)
     {
+        string result = "DRAW";
         using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         if (Id.Equals(winnerGuid))
         {
             Wins++;
-            Console.WriteLine("Game ended, WIN");
+            result = "WIN";
         }
         else if (winnerGuid.Equals(new Guid()))
         {
             Draws++;
-            Console.WriteLine("Game ended, DRAW");
         }
         else
         {
             Losses++;
-            Console.WriteLine("Game ended, LOSS");
+            result = "LOSS";
         }
+        Monitoring.Log.LogEndGameEventMessage(Id, winnerGuid, result, BoardId!.Value, GameBoard);
 
         Id = Guid.NewGuid();
         Strategy = StrategyFactory.GetRandomStrategy();
@@ -124,9 +131,9 @@ public class Bot
 
     public void JoinGame()
     {
+        Monitoring.Log.LogJoinGameEventMessage(Id, Wins, Losses, Draws, Strategy.ToString());
         using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Thread.Sleep(_random.Next(6000, 8000));
-        Console.WriteLine($"{Id}: Joining game. W:{Wins} L:{Losses} D:{Draws}; Strategy: {Strategy}");
         var botDto = new BotDTO()
         {
             Id = this.Id,
@@ -139,12 +146,16 @@ public class Bot
 
     public Move? GetNextMove()
     {
-        return Strategy.GetNextMove(GameBoard);
+        Monitoring.Log.LogGetNextMoveMessage(Id, Strategy.ToString());
+        var move = Strategy.GetNextMove(GameBoard);
+        Monitoring.Log.LogRetrievedNextMoveMessage(Id, move);
+        return move;
     }
 
     public void RequestBoardStateUpdate()
     {
-        if(BoardId.HasValue)
+        Monitoring.Log.LogInformation("Requesting board state update...");
+        if (BoardId.HasValue)
         {
             _messagePublisher.PublishRequestBoardStateUpdate(Id, BoardId.Value);
         }

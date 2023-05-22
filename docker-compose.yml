@@ -25,30 +25,6 @@ services:
     depends_on:
       - gamemanager
 
-  #botai2:
-  #  image: ${DOCKER_REGISTRY-}botai
-  #  build:
-  #    context: .
-  #    dockerfile: BotAI/Dockerfile
-  #  deploy:
-  #    replicas: 1
-  #  volumes:
-  #    - ./cloudAMQPConnectionString.txt:/app/cloudAMQPConnectionString.txt
-  #  depends_on:
-  #    - gamemanager
-
-  #botai3:
-  #  image: ${DOCKER_REGISTRY-}botai
-  #  build:
-  #    context: .
-  #    dockerfile: BotAI/Dockerfile
-  #  deploy:
-  #    replicas: 1
-  #  volumes:
-  #    - ./cloudAMQPConnectionString.txt:/app/cloudAMQPConnectionString.txt
-  #  depends_on:
-  #    - gamemanager
-
   gamemanager:
     image: ${DOCKER_REGISTRY-}gamemanager
     build:
@@ -56,6 +32,9 @@ services:
       dockerfile: GameManager/Dockerfile
     volumes:
       - ./cloudAMQPConnectionString.txt:/app/cloudAMQPConnectionString.txt
+    depends_on:
+        loki:
+            condition: service_healthy
 
   jaeger:
     image: jaegertracing/all-in-one:1.6
@@ -68,3 +47,22 @@ services:
       - 16686:16686
       - 14268:14268
       - 9411:9411
+
+  loki:
+    image: grafana/loki:master
+    ports:
+        - 3100:3100
+    healthcheck:
+        test: wget -q --tries=1 -O- http://localhost:3100/ready
+        interval: 3s
+        timeout: 3s
+        retries: 10
+        start_period: 10s
+
+  grafana:
+    image: grafana/grafana:master
+    ports:
+        - 3000:3000
+    depends_on:
+        loki:
+            condition: service_healthy

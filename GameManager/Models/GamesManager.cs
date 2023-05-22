@@ -1,4 +1,5 @@
 ﻿using GameManager.Messaging;
+using Microsoft.Extensions.Logging;
 using SharedDTOs.DTOs;
 using SharedDTOs.Monitoring;
 using System.Collections.Concurrent;
@@ -17,6 +18,7 @@ public class GamesManager
     public GamesManager(IMessagePublisher messagePublisher)
     {
         _messagePublisher = messagePublisher;
+        Monitoring.Log.LogInformation("Initializing GameManager...");
     }
 
     public void OnPlayerJoinEvent(BotDTO player)
@@ -26,8 +28,12 @@ public class GamesManager
         {
             if (!AvailablePlayers.Contains(player))
             {
-                Console.WriteLine($"Player joined {player.Id}");
+                Monitoring.Log.LogPlayerJoinQueueMessage(player.Id);
                 AvailablePlayers.Push(player);
+            }
+            else
+            {
+                Monitoring.Log.LogPlayerAlreadyInQueueWarning(player.Id);
             }
         }
         TryToMakeGame();
@@ -40,8 +46,12 @@ public class GamesManager
         {
             if (!AvailableBoards.Contains(boardId))
             {
-                Console.WriteLine($"Board joined {boardId}");
+                Monitoring.Log.LogBoardJoinQueueMessage(boardId);
                 AvailableBoards.Push(boardId);
+            }
+            else
+            {
+                Monitoring.Log.LogBoardAlreadyInQueueWarning(boardId);
             }
         }
         TryToMakeGame();
@@ -52,12 +62,10 @@ public class GamesManager
         using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         lock (_lockObject)
         {
-            Console.WriteLine("Trying to make a game...");
-            Console.WriteLine($"Boards: {AvailableBoards.Count}");
-            Console.WriteLine($"Players: {AvailablePlayers.Count}");
+            Monitoring.Log.LogTryingToMakeAGameMessage(AvailablePlayers.Count, AvailableBoards.Count);
             if (AvailablePlayers.Count > 1 && AvailableBoards.Any())
             {
-                Console.WriteLine("Enough boards and players found");
+                Monitoring.Log.LogInformation("Enough boards and players found; Creating a game...");
                 AvailableBoards.TryPop(out Guid boardId);
 
                 List<BotDTO> bots = new List<BotDTO>();
@@ -69,12 +77,12 @@ public class GamesManager
                         continue;
                     }
                     bots.Add(bot);
-                    Console.WriteLine($"Added bot {bot.Id} to game {boardId}");
                 }
                 bots[0].Side = BoardSide.White;
                 bots[1].Side = BoardSide.Black;
-                Console.WriteLine("Made a game...");
+
                 _messagePublisher.PublishGameStart(boardId, bots);
+                Monitoring.Log.LogGameCreatedMessage(boardId, bots);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using BoardManager.Models;
 using EasyNetQ;
+using Microsoft.Extensions.Logging;
 using SharedDTOs.Events;
 using SharedDTOs.Monitoring;
 using System.Reflection;
@@ -26,35 +27,39 @@ public class MessageSubscriber : IMessageSubsriber
         bus.SubscribeWithTracingAsync<MoveEvent>("moveEvent", HandeMoveEvent, boardId.ToString());
         bus.SubscribeWithTracingAsync<RequestBoardUpdateEvent>("requestBoardUpdateEvent", HandleRequestBoardStateUpdate, boardId.ToString());
 
+        Monitoring.Log.LogInformation("Message listener initialized.");
+
         // Block the thread so that it will not exit and stop subscribing.
         lock (this)
         {
             Monitor.Wait(this);
         }
+        Monitoring.Log.LogInformation("Shutting down message listener.");
     }
 
     public void HandeMoveEvent(MoveEvent moveEvent)
     {
+        Monitoring.Log.LogInformation("Movement event received...");
         using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
-        Console.WriteLine($"{_board} Movement received {moveEvent.BotId}; {moveEvent.Move}");
         if(!moveEvent.Move.HasValue)
         {
             var faultyBot = _board.Bots.Where(guid => guid.Equals(moveEvent.BotId));
             Guid winnderGuid = _board.Bots.Except(faultyBot).First().Id;
-            _board.EndGame(winnderGuid);
+            _board.EndGame(winnderGuid, _board.GameBoard.GameEndType, _board.GameBoard.GetFen().ToString());
         }
         _board.OnPlayerMoveEvent(moveEvent.BotId, moveEvent.Move.Value);
     }
 
     public void HandleGameStartEvent(GameStartEvent gameStartEvent)
     {
+        Monitoring.Log.LogInformation("Game started event received.");
         using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
-        Console.WriteLine($"{_board} Game Started...");
         _board.StartGame(gameStartEvent.Bots);
     }
 
     public void HandleRequestBoardStateUpdate(RequestBoardUpdateEvent requestBoardUpdateEvent)
     {
+        Monitoring.Log.LogInformation("Board state update requested event received.");
         using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         if (_board.Bots.Select(bot => bot.Id.Equals(requestBoardUpdateEvent.RequesteeId)).Any())
         {
@@ -62,7 +67,7 @@ public class MessageSubscriber : IMessageSubsriber
         }
         else
         {
-            Console.WriteLine("Requestee is not one of the players!");
+            Monitoring.Log.LogInformation("Requestee is not one of the players!");
         }
     }
 }
