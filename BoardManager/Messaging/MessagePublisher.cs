@@ -31,8 +31,10 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
         {
             BoardFenState = boardFenState,
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
+
         Monitoring.Log.LogInformation("Published board state update event...");
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
+
     }
 
     public async Task PublishGUIBoardStateUpdate(string boardFenState)
@@ -48,17 +50,19 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             BoardId = boardId,
             WinnerId = winnerId
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
+        
         Monitoring.Log.LogInformation("Published end game event...");
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
     }
 
     public void PublishRegisterBoard(Guid boardId)
     {
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         var message = new RegisterBoardEvent
         {
             BoardId = boardId,
         };
-        _bus.PubSub.Publish(message);
         Monitoring.Log.LogInformation("Published register event...");
+        _bus.PublishWithTracingAsync(message);
     }
 }

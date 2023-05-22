@@ -3,6 +3,7 @@ using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace GameManager.Messaging
 {
@@ -23,6 +24,7 @@ namespace GameManager.Messaging
 
         public void PublishGameStart(Guid boardId, ICollection<BotDTO> bots)
         {
+            using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
             var message = new GameStartEvent
             {
                 BoardId = boardId,
@@ -31,11 +33,11 @@ namespace GameManager.Messaging
 
             foreach (var bot in bots)
             {
-                _bus.PubSub.PublishWithTracingAsync<GameStartEvent>(message, bot.Id.ToString());
+                _bus.PublishWithTracingAsync<GameStartEvent>(message, bot.Id.ToString());
             }
 
-            _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
             Monitoring.Log.LogInformation("Published game start event...");
+            _bus.PublishWithTracingAsync(message, boardId.ToString());
         }
     }
 }

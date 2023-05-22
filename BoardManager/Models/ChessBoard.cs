@@ -6,6 +6,7 @@ using SharedDTOs.DTOs;
 using Rudzoft.ChessLib.Enums;
 using SharedDTOs.Monitoring;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace BoardManager.Models;
 
@@ -36,6 +37,7 @@ public class ChessBoard
     public void RegisterBoard()
     {
         Monitoring.Log.LogInformation("Registering self to queue...");
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         _messagePublisher.PublishRegisterBoard(Id);
     }
 

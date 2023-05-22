@@ -5,6 +5,7 @@ using SharedDTOs.Monitoring;
 using SharedDTOs.DTOs;
 using SharedDTOs.Events;
 using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace BotAI.Messaging;
 
@@ -26,13 +27,14 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
 
     public void PublishJoinGame(BotDTO bot)
     {
-        Thread.Sleep(_random.Next(2000, 9000));
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
+        Thread.Sleep(_random.Next(2000, 3000));
         var message = new JoinGameEvent
         {
             Bot = bot,
         };
-        _bus.PubSub.Publish(message);
         Monitoring.Log.LogInformation("Published join game event...");
+        _bus.PublishWithTracingAsync(message);
     }
 
     public void PublishMoveEvent(Guid? boardId, Guid botId, Move move)
@@ -45,8 +47,8 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             Move = move,
             
         };
-        _bus.PubSub.PublishWithTracingAsync(message, boardId.ToString());
         Monitoring.Log.LogInformation("Published move event...");
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
     }
 
     public void PublishRequestBoardStateUpdate(Guid id, Guid boardId)
@@ -56,7 +58,7 @@ internal class MessagePublisher : IMessagePublisher, IDisposable
             RequesteeId = id,
             BoardId = boardId,
         };
-        _bus.PubSub.Publish(message, boardId.ToString());
         Monitoring.Log.LogInformation("Published requested board state update event...");
+        _bus.PublishWithTracingAsync(message, boardId.ToString());
     }
 }

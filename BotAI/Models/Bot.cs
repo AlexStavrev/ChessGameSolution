@@ -6,6 +6,7 @@ using Rudzoft.ChessLib.Factories;
 using Rudzoft.ChessLib.Types;
 using SharedDTOs.DTOs;
 using SharedDTOs.Monitoring;
+using System.Reflection;
 
 namespace BotAI.Models;
 
@@ -101,6 +102,7 @@ public class Bot
     public void OnGameEndEvent(Guid winnerGuid)
     {
         string result = "DRAW";
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         if (Id.Equals(winnerGuid))
         {
             Wins++;
@@ -130,6 +132,7 @@ public class Bot
     public void JoinGame()
     {
         Monitoring.Log.LogJoinGameEventMessage(Id, Wins, Losses, Draws, Strategy.ToString());
+        using var activity = Monitoring.ActivitySource.StartActivity(MethodBase.GetCurrentMethod()!.Name);
         Thread.Sleep(_random.Next(6000, 8000));
         var botDto = new BotDTO()
         {

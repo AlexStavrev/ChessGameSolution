@@ -3,6 +3,7 @@ using OpenTelemetry;
 using System.Diagnostics;
 using EasyNetQ;
 using EasyNetQ.Internals;
+using System.Reflection;
 
 namespace SharedDTOs.Monitoring;
 
@@ -10,9 +11,10 @@ public static class PubSubExtensions
 {
     private static readonly TextMapPropagator Propagator = new TraceContextPropagator();
     
-    public static Task PublishWithTracingAsync<T>(this IPubSub con, T message) where T : TracingEventBase
+    public static Task PublishWithTracingAsync<T>(this IBus con, T message) where T : TracingEventBase
     {
         using var activity = Monitoring.ActivitySource.StartActivity(ActivityKind.Producer);
+        activity!.AddTag("exchange.name", GetExchangeName<T>(con));
         var activityContext = activity?.Context ?? Activity.Current?.Context ?? default;
     
         var propagationContext = new PropagationContext(activityContext, Baggage.Current);
@@ -20,12 +22,13 @@ public static class PubSubExtensions
         {
             msg.Headers[key] = value;
         });
-        return con.PublishAsync(message);
+        return con.PubSub.PublishAsync(message);
     }
 
-    public static Task PublishWithTracingAsync<T>(this IPubSub con, T message, string topic) where T : TracingEventBase
+    public static Task PublishWithTracingAsync<T>(this IBus con, T message, string topic) where T : TracingEventBase
     {
         using var activity = Monitoring.ActivitySource.StartActivity(ActivityKind.Producer);
+        activity!.AddTag("exchange.name", GetExchangeName<T>(con));
         var activityContext = activity?.Context ?? Activity.Current?.Context ?? default;
 
         var propagationContext = new PropagationContext(activityContext, Baggage.Current);
@@ -33,12 +36,12 @@ public static class PubSubExtensions
         {
             msg.Headers[key] = value;
         });
-        return con.PublishAsync(message, topic);
+        return con.PubSub.PublishAsync(message, topic);
     }
 
-    public static AwaitableDisposable<SubscriptionResult> SubscribeWithTracingAsync<T>(this IPubSub con, string subscriptionId, Action<T> onMessage) where T : TracingEventBase
+    public static SubscriptionResult SubscribeWithTracingAsync<T>(this IBus con, string subscriptionId, Action<T> onMessage) where T : TracingEventBase
     {
-        return con.SubscribeAsync(subscriptionId, (T message) =>
+        return con.PubSub.Subscribe(subscriptionId, (T message) =>
         {
             var parentContext = Propagator.Extract(default, message, (msg, key) =>
             {
@@ -49,15 +52,18 @@ public static class PubSubExtensions
     
                 return Enumerable.Empty<string>();
             });
-    
-            using var activity = Monitoring.ActivitySource.StartActivity("Received message", ActivityKind.Consumer, parentContext.ActivityContext);
+
+            using var activity = Monitoring.ActivitySource.StartActivity(ActivityKind.Consumer, parentContext.ActivityContext);
+            activity!.AddTag("exchange.name", GetExchangeName<T>(con));
+            activity!.AddTag("queue.name", GetQueueName<T>(con, subscriptionId));
+            var activityContext = activity?.Context ?? Activity.Current?.Context ?? default;
             onMessage(message);
         });
     }
 
-    public static AwaitableDisposable<SubscriptionResult> SubscribeWithTracingAsync<T>(this IPubSub con, string subscriptionId, Action<T> onMessage, string topic) where T : TracingEventBase
+    public static SubscriptionResult SubscribeWithTracingAsync<T>(this IBus con, string subscriptionId, Action<T> onMessage, string topic) where T : TracingEventBase
     {
-        return con.SubscribeAsync(subscriptionId, (T message) =>
+        return con.PubSub.Subscribe(subscriptionId, (T message) =>
         {
             var parentContext = Propagator.Extract(default, message, (msg, key) =>
             {
@@ -69,9 +75,32 @@ public static class PubSubExtensions
                 return Enumerable.Empty<string>();
             });
 
-            using var activity = Monitoring.ActivitySource.StartActivity("Received message", ActivityKind.Consumer, parentContext.ActivityContext);
+            using var activity = Monitoring.ActivitySource.StartActivity(ActivityKind.Consumer, parentContext.ActivityContext);
+            activity!.AddTag("exchange.name", GetExchangeName<T>(con));
+            activity!.AddTag("queue.name", GetQueueName<T>(con, subscriptionId));
+            var activityContext = activity?.Context ?? Activity.Current?.Context ?? default;
             onMessage(message);
         }, x => x.WithTopic(topic));
+    }
+
+    public static string GetExchangeName<T>(IBus con) where T : TracingEventBase
+    {
+        var advancedBus = con.Advanced;
+        var conventions = advancedBus.Container.Resolve<IConventions>();
+
+        var exchange = conventions.ExchangeNamingConvention(typeof(T));
+
+        return exchange;
+    }
+
+    public static string GetQueueName<T>(IBus con, string subscriptionId) where T : TracingEventBase
+    {
+        var advancedBus = con.Advanced;
+        var conventions = advancedBus.Container.Resolve<IConventions>();
+
+        var queue = conventions.QueueNamingConvention(typeof(T), subscriptionId);
+
+        return queue;
     }
 }
 
